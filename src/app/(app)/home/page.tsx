@@ -74,6 +74,7 @@ export default async function HomePage() {
         </Link>
 
         <HomeInteractive
+          userId={user.id}
           seasonCurrent={profile?.season_current ?? 1}
           seasonCheckins={seasonCheckins}
           hasCheckedInToday={hasCheckedInToday}

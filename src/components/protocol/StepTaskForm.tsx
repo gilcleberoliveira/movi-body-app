@@ -4,9 +4,18 @@ import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 import { CameraIcon, VideoIcon, TextIcon } from "@/components/icons";
 import { completeProtocolStep } from "@/app/actions";
+import { uploadMediaFromBrowser } from "@/lib/uploadMedia";
 import type { ProtocolStep } from "@/lib/data/protocolSteps";
 
-export function StepTaskForm({ step, alreadyDone }: { step: ProtocolStep; alreadyDone: boolean }) {
+export function StepTaskForm({
+  step,
+  alreadyDone,
+  userId,
+}: {
+  step: ProtocolStep;
+  alreadyDone: boolean;
+  userId: string;
+}) {
   const router = useRouter();
   const [text, setText] = useState("");
   const [file, setFile] = useState<File | null>(null);
@@ -32,7 +41,15 @@ export function StepTaskForm({ step, alreadyDone }: { step: ProtocolStep; alread
       formData.set("stepId", String(step.id));
       formData.set("type", step.type);
       if (step.type === "text") formData.set("responseText", text.trim());
-      if (file) formData.set("file", file);
+      if (file) {
+        try {
+          const uploaded = await uploadMediaFromBrowser(userId, file);
+          formData.set("proofPath", uploaded.path);
+        } catch (e) {
+          setError(e instanceof Error ? e.message : "Upload failed. Please try again.");
+          return;
+        }
+      }
       const result = await completeProtocolStep(formData);
       if (result.error) {
         setError(result.error);

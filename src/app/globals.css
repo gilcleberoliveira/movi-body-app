@@ -352,7 +352,7 @@ textarea.task-input{width:100%;border-radius:12px;border:1px solid var(--border)
 .chat-row.own .chat-bubble{background:var(--foreground);color:var(--background);border-top-left-radius:14px;border-top-right-radius:4px}
 .chat-bubble.media{padding:6px}
 .chat-media-box{width:180px;aspect-ratio:4/3;background:color-mix(in srgb, var(--foreground) 8%, var(--secondary));border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--muted-foreground);overflow:hidden}
-.chat-media-box img{width:100%;height:100%;object-fit:cover}
+.chat-media-box img,.chat-media-box video{width:100%;height:100%;object-fit:cover}
 .chat-row.own .chat-media-box{background:color-mix(in srgb, var(--background) 20%, transparent);color:var(--background)}
 .chat-media-box svg{width:26px;height:26px}
 .chat-media-caption{padding:6px 4px 2px;font-size:13px;line-height:1.4}

@@ -5,6 +5,7 @@ import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import { AttachIcon, SendIcon } from "@/components/icons";
 import { sendChatMessage } from "@/app/actions";
+import { uploadMediaFromBrowser } from "@/lib/uploadMedia";
 
 export type ChatMessage = {
   id: string;
@@ -61,10 +62,13 @@ export function ChatRoom({ userId, initialMessages }: { userId: string; initialM
     if (sending) return;
     if (!pendingFile && !text.trim()) return;
     setSending(true);
-    const formData = new FormData();
-    if (text.trim()) formData.set("body", text.trim());
-    if (pendingFile) formData.set("file", pendingFile);
     try {
+      const formData = new FormData();
+      if (text.trim()) formData.set("body", text.trim());
+      if (pendingFile) {
+        const uploaded = await uploadMediaFromBrowser(userId, pendingFile);
+        formData.set("mediaPath", uploaded.path);
+      }
       await sendChatMessage(formData);
       setText("");
       setPendingFile(null);
@@ -77,6 +81,13 @@ export function ChatRoom({ userId, initialMessages }: { userId: string; initialM
   function mediaUrl(path: string | null) {
     if (!path) return null;
     return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/media/${path}`;
+  }
+
+  const VIDEO_EXTENSIONS = ["mp4", "mov", "webm", "m4v", "avi"];
+  function isVideoPath(path: string | null) {
+    if (!path) return false;
+    const ext = path.split(".").pop()?.toLowerCase();
+    return !!ext && VIDEO_EXTENSIONS.includes(ext);
   }
 
   return (
@@ -92,9 +103,12 @@ export function ChatRoom({ userId, initialMessages }: { userId: string; initialM
                 {m.kind === "media" ? (
                   <div className="chat-bubble media">
                     <div className="chat-media-box">
-                      {mediaUrl(m.storage_path) && (
-                        <Image src={mediaUrl(m.storage_path)!} alt="" width={180} height={135} unoptimized />
-                      )}
+                      {mediaUrl(m.storage_path) &&
+                        (isVideoPath(m.storage_path) ? (
+                          <video src={mediaUrl(m.storage_path)!} muted playsInline preload="metadata" />
+                        ) : (
+                          <Image src={mediaUrl(m.storage_path)!} alt="" width={180} height={135} unoptimized />
+                        ))}
                     </div>
                     {m.body && <p className="chat-media-caption">{m.body}</p>}
                   </div>

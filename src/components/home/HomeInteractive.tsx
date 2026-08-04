@@ -6,6 +6,7 @@ import { SPORTS, sportById } from "@/lib/data/sports";
 import { SportIcon } from "@/components/SportIcon";
 import { CheckIcon, ArrowLeftIcon, CameraIcon } from "@/components/icons";
 import { checkIn } from "@/app/actions";
+import { uploadMediaFromBrowser } from "@/lib/uploadMedia";
 import { SEASON_LENGTH, seasonMeta } from "@/lib/data/protocolSteps";
 
 const CHECKIN_MESSAGES = [
@@ -17,6 +18,7 @@ const WEEK_COMPLETE_MSG = "Seven days of proof. Your identity is listening.";
 const NOT_YET_MSG = "You can check in later today — no rush.";
 
 export type HomeInteractiveProps = {
+  userId: string;
   seasonCurrent: number;
   seasonCheckins: string[]; // sport_id per day, index 0 = day 1
   hasCheckedInToday: boolean;
@@ -24,6 +26,7 @@ export type HomeInteractiveProps = {
 };
 
 export function HomeInteractive({
+  userId,
   seasonCurrent,
   seasonCheckins,
   hasCheckedInToday,
@@ -69,7 +72,16 @@ export function HomeInteractive({
     startTransition(async () => {
       const formData = new FormData();
       formData.set("sportId", selectedSportId);
-      if (file) formData.set("file", file);
+      if (file) {
+        try {
+          const uploaded = await uploadMediaFromBrowser(userId, file);
+          formData.set("proofPath", uploaded.path);
+          formData.set("proofKind", uploaded.kind);
+        } catch (e) {
+          setError(e instanceof Error ? e.message : "Upload failed. Please try again.");
+          return;
+        }
+      }
       const result = await checkIn(formData);
       if (result.error !== null) {
         setError(result.error);

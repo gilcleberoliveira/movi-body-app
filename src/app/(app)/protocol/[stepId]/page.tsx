@@ -42,7 +42,7 @@ export default async function ProtocolDetailPage({ params }: { params: Promise<{
         </p>
         <h2>{step.title}</h2>
         <p className="lesson">{step.lesson}</p>
-        <StepTaskForm step={step} alreadyDone={isDone} />
+        <StepTaskForm step={step} alreadyDone={isDone} userId={user.id} />
       </main>
     </div>
   );

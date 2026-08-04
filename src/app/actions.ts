@@ -2,7 +2,6 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { randomUUID } from "node:crypto";
 import { createClient } from "@/lib/supabase/server";
 import { applyCheckIn, type ProfileGameState, type CheckInEvent } from "@/lib/game";
 
@@ -54,23 +53,11 @@ export async function signOut() {
   redirect("/login");
 }
 
-// ───────────────────────────── Storage ─────────────────────────────
-
-async function uploadMedia(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  userId: string,
-  file: File
-): Promise<string> {
-  const ext = file.name.split(".").pop() || "bin";
-  const path = `${userId}/${randomUUID()}.${ext}`;
-  const { error } = await supabase.storage.from("media").upload(path, file, {
-    contentType: file.type || undefined,
-  });
-  if (error) throw new Error(error.message);
-  return path;
-}
-
 // ───────────────────────────── Check-in ─────────────────────────────
+// Note: media files are uploaded directly from the browser to Supabase
+// Storage (see src/lib/uploadMedia.ts) — Vercel's Serverless Functions cap
+// request bodies at ~4.5MB regardless of Next.js config, far too small for
+// phone photos/videos, so these actions only ever receive a storage path.
 
 export async function checkIn(
   formData: FormData
@@ -83,7 +70,8 @@ export async function checkIn(
     if (!user) return { error: "Not authenticated" };
 
     const sportId = String(formData.get("sportId"));
-    const file = formData.get("file");
+    const proofPath = formData.get("proofPath");
+    const proofKind = formData.get("proofKind");
 
     const { data: profile, error: profileErr } = await supabase
       .from("profiles")
@@ -93,12 +81,10 @@ export async function checkIn(
     if (profileErr || !profile) return { error: "Profile not found" };
 
     let proofId: string | null = null;
-    if (file instanceof File && file.size > 0) {
-      const kind = file.type.startsWith("video/") ? "video" : "photo";
-      const path = await uploadMedia(supabase, user.id, file);
+    if (typeof proofPath === "string" && proofPath && (proofKind === "photo" || proofKind === "video")) {
       const { data: proof, error: proofErr } = await supabase
         .from("proofs")
-        .insert({ user_id: user.id, kind, storage_path: path })
+        .insert({ user_id: user.id, kind: proofKind, storage_path: proofPath })
         .select()
         .single();
       if (proofErr) return { error: proofErr.message };
@@ -214,15 +200,14 @@ export async function completeProtocolStep(
     const stepId = Number(formData.get("stepId"));
     const type = String(formData.get("type"));
     const responseText = formData.get("responseText");
-    const file = formData.get("file");
+    const proofPath = formData.get("proofPath");
 
     let proofId: string | null = null;
 
-    if ((type === "photo" || type === "video") && file instanceof File && file.size > 0) {
-      const path = await uploadMedia(supabase, user.id, file);
+    if ((type === "photo" || type === "video") && typeof proofPath === "string" && proofPath) {
       const { data: proof, error: proofErr } = await supabase
         .from("proofs")
-        .insert({ user_id: user.id, kind: type as "photo" | "video", storage_path: path })
+        .insert({ user_id: user.id, kind: type as "photo" | "video", storage_path: proofPath })
         .select()
         .single();
       if (proofErr) return { error: proofErr.message };
@@ -266,13 +251,8 @@ export async function sendChatMessage(formData: FormData) {
     .single();
 
   const body = formData.get("body");
-  const file = formData.get("file");
-  const kind = file instanceof File && file.size > 0 ? "media" : "text";
-
-  let storagePath: string | null = null;
-  if (kind === "media" && file instanceof File) {
-    storagePath = await uploadMedia(supabase, user.id, file);
-  }
+  const mediaPath = formData.get("mediaPath");
+  const kind = typeof mediaPath === "string" && mediaPath ? "media" : "text";
 
   if (kind === "text" && (!body || String(body).trim() === "")) return;
 
@@ -282,7 +262,7 @@ export async function sendChatMessage(formData: FormData) {
     initial: profile?.avatar_initial ?? "M",
     kind,
     body: typeof body === "string" && body ? body : null,
-    storage_path: storagePath,
+    storage_path: typeof mediaPath === "string" && mediaPath ? mediaPath : null,
   });
   if (error) throw new Error(error.message);
 }
