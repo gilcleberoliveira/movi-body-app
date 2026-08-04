@@ -49,6 +49,7 @@ export type Database = {
           sport_id: string;
           season: number;
           day_in_season: number;
+          proof_id: string | null;
           created_at: string;
         },
         {
@@ -57,6 +58,7 @@ export type Database = {
           sport_id: string;
           season: number;
           day_in_season: number;
+          proof_id?: string | null;
           created_at?: string;
         }
       >;

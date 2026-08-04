@@ -19,7 +19,7 @@ export default async function HomePage() {
 
   const { data: seasonCheckinsRaw } = await supabase
     .from("checkins")
-    .select("sport_id, day_in_season, created_at")
+    .select("sport_id, day_in_season, proof_id, created_at")
     .eq("user_id", user.id)
     .eq("season", profile?.season_current ?? 1)
     .order("day_in_season", { ascending: true });
@@ -34,18 +34,16 @@ export default async function HomePage() {
     .select("*", { count: "exact", head: true })
     .eq("user_id", user.id);
 
-  const { data: recentProgressRaw } = await supabase
-    .from("protocol_progress")
-    .select("step_id, completed_at, proof_id")
-    .eq("user_id", user.id)
-    .order("completed_at", { ascending: false })
-    .limit(4);
+  const recentCheckinsWithProof = (seasonCheckinsRaw ?? [])
+    .filter((c) => c.proof_id)
+    .slice(-4)
+    .reverse();
 
-  const proofIds = (recentProgressRaw ?? []).map((p) => p.proof_id).filter((id): id is string => !!id);
+  const proofIds = recentCheckinsWithProof.map((c) => c.proof_id).filter((id): id is string => !!id);
   const { data: proofsRaw } = proofIds.length
-    ? await supabase.from("proofs").select("id, storage_path").in("id", proofIds)
-    : { data: [] as { id: string; storage_path: string }[] };
-  const proofById = new Map((proofsRaw ?? []).map((p) => [p.id, p.storage_path]));
+    ? await supabase.from("proofs").select("id, storage_path, kind").in("id", proofIds)
+    : { data: [] as { id: string; storage_path: string; kind: string }[] };
+  const proofById = new Map((proofsRaw ?? []).map((p) => [p.id, p]));
 
   const totalSteps = PROTOCOL_STEPS.length;
   const done = completedSteps ?? 0;
@@ -90,15 +88,21 @@ export default async function HomePage() {
             </Link>
           </div>
           <div className="hscroll">
-            {(recentProgressRaw ?? []).map((p) => {
-              const storagePath = p.proof_id ? proofById.get(p.proof_id) : null;
-              const url = storagePath ? mediaUrl(storagePath) : null;
+            {recentCheckinsWithProof.length === 0 && (
+              <p style={{ fontSize: 13, color: "var(--muted-foreground)" }}>
+                No proofs yet — add one next time you check in.
+              </p>
+            )}
+            {recentCheckinsWithProof.map((c) => {
+              const proof = c.proof_id ? proofById.get(c.proof_id) : null;
+              const url = proof ? mediaUrl(proof.storage_path) : null;
+              if (!url) return null;
               return (
-                <div key={p.step_id} className="tile proof">
-                  {url ? (
-                    <Image src={url} alt="" width={78} height={78} unoptimized />
+                <div key={c.day_in_season} className="tile proof">
+                  {proof?.kind === "video" ? (
+                    <video src={url} muted playsInline preload="metadata" />
                   ) : (
-                    <span>Step {p.step_id}</span>
+                    <Image src={url} alt="" width={78} height={78} unoptimized />
                   )}
                 </div>
               );

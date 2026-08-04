@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { randomUUID } from "node:crypto";
 import { createClient } from "@/lib/supabase/server";
-import { applyCheckIn, type ProfileGameState } from "@/lib/game";
+import { applyCheckIn, type ProfileGameState, type CheckInEvent } from "@/lib/game";
 
 // ───────────────────────────── Auth ─────────────────────────────
 
@@ -72,51 +72,74 @@ async function uploadMedia(
 
 // ───────────────────────────── Check-in ─────────────────────────────
 
-export async function checkIn(sportId: string) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
+export async function checkIn(
+  formData: FormData
+): Promise<{ error: string; event?: undefined } | { error: null; event: CheckInEvent }> {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return { error: "Not authenticated" };
 
-  const { data: profile, error: profileErr } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single();
-  if (profileErr || !profile) throw new Error("Profile not found");
+    const sportId = String(formData.get("sportId"));
+    const file = formData.get("file");
 
-  const state: ProfileGameState = {
-    xp: profile.xp,
-    level: profile.level,
-    streak_current: profile.streak_current,
-    streak_longest: profile.streak_longest,
-    shields_available: profile.shields_available,
-    checkins_this_week: profile.checkins_this_week,
-    day_in_season: profile.day_in_season,
-    season_current: profile.season_current,
-  };
+    const { data: profile, error: profileErr } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .single();
+    if (profileErr || !profile) return { error: "Profile not found" };
 
-  const seasonBeforeCheckin = state.season_current;
-  const dayBeforeCheckin = state.day_in_season;
-  const { next, event } = applyCheckIn(state);
+    let proofId: string | null = null;
+    if (file instanceof File && file.size > 0) {
+      const kind = file.type.startsWith("video/") ? "video" : "photo";
+      const path = await uploadMedia(supabase, user.id, file);
+      const { data: proof, error: proofErr } = await supabase
+        .from("proofs")
+        .insert({ user_id: user.id, kind, storage_path: path })
+        .select()
+        .single();
+      if (proofErr) return { error: proofErr.message };
+      proofId = proof.id;
+    }
 
-  const { error: checkinErr } = await supabase.from("checkins").insert({
-    user_id: user.id,
-    sport_id: sportId,
-    season: seasonBeforeCheckin,
-    day_in_season: dayBeforeCheckin + 1,
-  });
-  if (checkinErr) throw new Error(checkinErr.message);
+    const state: ProfileGameState = {
+      xp: profile.xp,
+      level: profile.level,
+      streak_current: profile.streak_current,
+      streak_longest: profile.streak_longest,
+      shields_available: profile.shields_available,
+      checkins_this_week: profile.checkins_this_week,
+      day_in_season: profile.day_in_season,
+      season_current: profile.season_current,
+    };
 
-  const { error: updateErr } = await supabase.from("profiles").update(next).eq("id", user.id);
-  if (updateErr) throw new Error(updateErr.message);
+    const seasonBeforeCheckin = state.season_current;
+    const dayBeforeCheckin = state.day_in_season;
+    const { next, event } = applyCheckIn(state);
 
-  revalidatePath("/home");
-  revalidatePath("/wall");
-  revalidatePath("/profile");
+    const { error: checkinErr } = await supabase.from("checkins").insert({
+      user_id: user.id,
+      sport_id: sportId,
+      season: seasonBeforeCheckin,
+      day_in_season: dayBeforeCheckin + 1,
+      proof_id: proofId,
+    });
+    if (checkinErr) return { error: checkinErr.message };
 
-  return event;
+    const { error: updateErr } = await supabase.from("profiles").update(next).eq("id", user.id);
+    if (updateErr) return { error: updateErr.message };
+
+    revalidatePath("/home");
+    revalidatePath("/wall");
+    revalidatePath("/profile");
+
+    return { error: null, event };
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Unexpected error" };
+  }
 }
 
 // ───────────────────────────── Journal ─────────────────────────────

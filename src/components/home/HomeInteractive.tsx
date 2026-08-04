@@ -1,10 +1,10 @@
 "use client";
 
+import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
 import { SPORTS, sportById } from "@/lib/data/sports";
 import { SportIcon } from "@/components/SportIcon";
-import { CheckIcon } from "@/components/icons";
+import { CheckIcon, ArrowLeftIcon, CameraIcon } from "@/components/icons";
 import { checkIn } from "@/app/actions";
 import { SEASON_LENGTH, seasonMeta } from "@/lib/data/protocolSteps";
 
@@ -31,26 +31,56 @@ export function HomeInteractive({
 }: HomeInteractiveProps) {
   const router = useRouter();
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [selectedSportId, setSelectedSportId] = useState<string | null>(null);
+  const [file, setFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [celebration, setCelebration] = useState<number | null>(null);
   const [pending, startTransition] = useTransition();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const season = seasonMeta(seasonCurrent)!;
+  const selectedSport = selectedSportId ? sportById(selectedSportId) : null;
 
   function showToast(text: string) {
     setToast(text);
     setTimeout(() => setToast(null), 2600);
   }
 
-  function handlePick(sportId: string) {
+  function closeSheet() {
     setSheetOpen(false);
+    setSelectedSportId(null);
+    setError(null);
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setFile(null);
+    setPreviewUrl(null);
+  }
+
+  function handleFilePick(f: File | null) {
+    setFile(f);
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(f ? URL.createObjectURL(f) : null);
+  }
+
+  function handleConfirm() {
+    if (!selectedSportId || pending) return;
+    setError(null);
     startTransition(async () => {
-      const event = await checkIn(sportId);
+      const formData = new FormData();
+      formData.set("sportId", selectedSportId);
+      if (file) formData.set("file", file);
+      const result = await checkIn(formData);
+      if (result.error !== null) {
+        setError(result.error);
+        return;
+      }
+      closeSheet();
       let msg = CHECKIN_MESSAGES[Math.floor(Math.random() * CHECKIN_MESSAGES.length)];
-      if (event.weekComplete) msg = WEEK_COMPLETE_MSG;
+      if (result.event.weekComplete) msg = WEEK_COMPLETE_MSG;
       showToast(msg);
-      if (event.seasonComplete && event.justDoneSeasonNumber) {
-        setCelebration(event.justDoneSeasonNumber);
+      if (result.event.seasonComplete && result.event.justDoneSeasonNumber) {
+        setCelebration(result.event.justDoneSeasonNumber);
       }
       router.refresh();
     });
@@ -127,24 +157,65 @@ export function HomeInteractive({
         </div>
       </section>
 
-      <div className={`overlay${sheetOpen ? " open" : ""}`} onClick={(e) => e.target === e.currentTarget && setSheetOpen(false)}>
+      <div className={`overlay${sheetOpen ? " open" : ""}`} onClick={(e) => e.target === e.currentTarget && closeSheet()}>
         <div className="sheet">
-          <div className="sheet-head">
-            <h3>What did you do today?</h3>
-            <button aria-label="Close" onClick={() => setSheetOpen(false)}>
-              ✕
-            </button>
-          </div>
-          <div className="sport-grid">
-            {SPORTS.map((s) => (
-              <button key={s.id} className="sport-btn" onClick={() => handlePick(s.id)}>
-                <div className="sport-badge">
-                  <SportIcon sport={s} />
+          {!selectedSport ? (
+            <>
+              <div className="sheet-head">
+                <h3>What did you do today?</h3>
+                <button aria-label="Close" onClick={closeSheet}>
+                  ✕
+                </button>
+              </div>
+              <div className="sport-grid">
+                {SPORTS.map((s) => (
+                  <button key={s.id} className="sport-btn" onClick={() => setSelectedSportId(s.id)}>
+                    <div className="sport-badge">
+                      <SportIcon sport={s} />
+                    </div>
+                    <span>{s.label}</span>
+                  </button>
+                ))}
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="sheet-head">
+                <button className="back-btn" style={{ margin: 0 }} onClick={() => setSelectedSportId(null)}>
+                  <ArrowLeftIcon />
+                  {selectedSport.label}
+                </button>
+                <button aria-label="Close" onClick={closeSheet}>
+                  ✕
+                </button>
+              </div>
+              <div className="task-box">
+                <div className="task-label">
+                  <CameraIcon />
+                  <span>Add a proof (optional)</span>
                 </div>
-                <span>{s.label}</span>
-              </button>
-            ))}
-          </div>
+                <p className="task-prompt">A photo or video for the Wall — or just check in without one.</p>
+                <div className="upload-box" onClick={() => fileInputRef.current?.click()}>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*,video/*"
+                    onChange={(e) => handleFilePick(e.target.files?.[0] ?? null)}
+                  />
+                  <CameraIcon />
+                  <span className="u-label">{file ? "Attached ✓" : "Tap to add a photo or video"}</span>
+                  {previewUrl && file?.type.startsWith("image/") && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={previewUrl} alt="" className="upload-preview" />
+                  )}
+                </div>
+                <button className="pill primary" style={{ width: "100%", justifyContent: "center", marginTop: 16 }} disabled={pending} onClick={handleConfirm}>
+                  {pending ? "Checking in…" : "Check in"}
+                </button>
+                {error && <p className="form-error">{error}</p>}
+              </div>
+            </>
+          )}
         </div>
       </div>
 

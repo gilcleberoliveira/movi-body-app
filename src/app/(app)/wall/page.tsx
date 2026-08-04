@@ -1,10 +1,10 @@
 import Link from "next/link";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import { Brand } from "@/components/Brand";
-import { SportIcon } from "@/components/SportIcon";
 import { PlusIcon } from "@/components/icons";
-import { sportById } from "@/lib/data/sports";
 import { SEASON_LENGTH, seasonMeta } from "@/lib/data/protocolSteps";
+import { mediaUrl } from "@/lib/media";
 
 export default async function WallPage() {
   const supabase = await createClient();
@@ -19,12 +19,18 @@ export default async function WallPage() {
 
   const { data: seasonCheckinsRaw } = await supabase
     .from("checkins")
-    .select("sport_id, day_in_season")
+    .select("sport_id, day_in_season, proof_id")
     .eq("user_id", user.id)
     .eq("season", seasonCurrent)
     .order("day_in_season", { ascending: true });
 
   const seasonCheckins = seasonCheckinsRaw ?? [];
+
+  const proofIds = seasonCheckins.map((c) => c.proof_id).filter((id): id is string => !!id);
+  const { data: proofsRaw } = proofIds.length
+    ? await supabase.from("proofs").select("id, storage_path, kind").in("id", proofIds)
+    : { data: [] as { id: string; storage_path: string; kind: string }[] };
+  const proofById = new Map((proofsRaw ?? []).map((p) => [p.id, p]));
 
   return (
     <div className="view-wall">
@@ -44,11 +50,19 @@ export default async function WallPage() {
             const dayLabel = `Day ${String(i + 1).padStart(2, "0")}`;
             const entry = seasonCheckins[i];
             if (entry) {
-              const sport = sportById(entry.sport_id);
+              const proof = entry.proof_id ? proofById.get(entry.proof_id) : null;
+              const url = proof ? mediaUrl(proof.storage_path) : null;
               return (
-                <div key={i} className="w-tile proof" title={sport?.label}>
-                  {sport && <SportIcon sport={sport} />}
-                  <span>{dayLabel}</span>
+                <div key={i} className="w-tile proof">
+                  {url ? (
+                    proof?.kind === "video" ? (
+                      <video src={url} muted playsInline preload="metadata" />
+                    ) : (
+                      <Image src={url} alt="" width={140} height={140} unoptimized />
+                    )
+                  ) : (
+                    <span>{dayLabel}</span>
+                  )}
                 </div>
               );
             }
