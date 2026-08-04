@@ -1,5 +1,6 @@
 -- Movi Body — initial schema
 -- Run this in the Supabase SQL Editor (Project → SQL Editor → New query → paste → Run)
+-- Safe to re-run: uses "if not exists" / "drop policy if exists" throughout.
 
 create extension if not exists "pgcrypto";
 
@@ -24,10 +25,13 @@ create table if not exists public.profiles (
 
 alter table public.profiles enable row level security;
 
+drop policy if exists "profiles: read own" on public.profiles;
 create policy "profiles: read own" on public.profiles
   for select using (auth.uid() = id);
+drop policy if exists "profiles: update own" on public.profiles;
 create policy "profiles: update own" on public.profiles
   for update using (auth.uid() = id);
+drop policy if exists "profiles: insert own" on public.profiles;
 create policy "profiles: insert own" on public.profiles
   for insert with check (auth.uid() = id);
 
@@ -68,8 +72,10 @@ create table if not exists public.checkins (
 
 alter table public.checkins enable row level security;
 
+drop policy if exists "checkins: read own" on public.checkins;
 create policy "checkins: read own" on public.checkins
   for select using (auth.uid() = user_id);
+drop policy if exists "checkins: insert own" on public.checkins;
 create policy "checkins: insert own" on public.checkins
   for insert with check (auth.uid() = user_id);
 
@@ -88,8 +94,10 @@ create table if not exists public.proofs (
 
 alter table public.proofs enable row level security;
 
+drop policy if exists "proofs: read own" on public.proofs;
 create policy "proofs: read own" on public.proofs
   for select using (auth.uid() = user_id);
+drop policy if exists "proofs: insert own" on public.proofs;
 create policy "proofs: insert own" on public.proofs
   for insert with check (auth.uid() = user_id);
 
@@ -108,8 +116,10 @@ create table if not exists public.protocol_progress (
 
 alter table public.protocol_progress enable row level security;
 
+drop policy if exists "protocol_progress: read own" on public.protocol_progress;
 create policy "protocol_progress: read own" on public.protocol_progress
   for select using (auth.uid() = user_id);
+drop policy if exists "protocol_progress: insert own" on public.protocol_progress;
 create policy "protocol_progress: insert own" on public.protocol_progress
   for insert with check (auth.uid() = user_id);
 
@@ -125,8 +135,10 @@ create table if not exists public.journal_entries (
 
 alter table public.journal_entries enable row level security;
 
+drop policy if exists "journal_entries: read own" on public.journal_entries;
 create policy "journal_entries: read own" on public.journal_entries
   for select using (auth.uid() = user_id);
+drop policy if exists "journal_entries: insert own" on public.journal_entries;
 create policy "journal_entries: insert own" on public.journal_entries
   for insert with check (auth.uid() = user_id);
 
@@ -142,8 +154,10 @@ create table if not exists public.transformations (
 
 alter table public.transformations enable row level security;
 
+drop policy if exists "transformations: read own" on public.transformations;
 create policy "transformations: read own" on public.transformations
   for select using (auth.uid() = user_id);
+drop policy if exists "transformations: insert own" on public.transformations;
 create policy "transformations: insert own" on public.transformations
   for insert with check (auth.uid() = user_id);
 
@@ -163,10 +177,13 @@ create table if not exists public.daily_interactions (
 
 alter table public.daily_interactions enable row level security;
 
+drop policy if exists "daily_interactions: read own" on public.daily_interactions;
 create policy "daily_interactions: read own" on public.daily_interactions
   for select using (auth.uid() = user_id);
+drop policy if exists "daily_interactions: upsert own" on public.daily_interactions;
 create policy "daily_interactions: upsert own" on public.daily_interactions
   for insert with check (auth.uid() = user_id);
+drop policy if exists "daily_interactions: update own" on public.daily_interactions;
 create policy "daily_interactions: update own" on public.daily_interactions
   for update using (auth.uid() = user_id);
 
@@ -189,8 +206,10 @@ create table if not exists public.chat_messages (
 alter table public.chat_messages enable row level security;
 
 -- any authenticated member can read the shared room
+drop policy if exists "chat_messages: read all" on public.chat_messages;
 create policy "chat_messages: read all" on public.chat_messages
   for select using (auth.role() = 'authenticated');
+drop policy if exists "chat_messages: insert own" on public.chat_messages;
 create policy "chat_messages: insert own" on public.chat_messages
   for insert with check (auth.uid() = user_id);
 
@@ -201,4 +220,12 @@ create policy "chat_messages: insert own" on public.chat_messages
 -- ─────────────────────────────────────────────────────────────
 -- realtime: broadcast chat inserts to subscribed clients
 -- ─────────────────────────────────────────────────────────────
-alter publication supabase_realtime add table public.chat_messages;
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'chat_messages'
+  ) then
+    alter publication supabase_realtime add table public.chat_messages;
+  end if;
+end $$;

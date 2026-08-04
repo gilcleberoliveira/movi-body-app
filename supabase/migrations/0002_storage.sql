@@ -1,5 +1,6 @@
 -- Movi Body — storage bucket for proofs & chat media
 -- Run this after 0001_init.sql, also in the Supabase SQL Editor.
+-- Safe to re-run: drops each policy first if it already exists.
 
 insert into storage.buckets (id, name, public)
 values ('media', 'media', true)
@@ -10,15 +11,18 @@ on conflict (id) do nothing;
 -- these are meant to be seen in the wall/community feed), only the
 -- owner can write into their own folder.
 
+drop policy if exists "media: public read" on storage.objects;
 create policy "media: public read" on storage.objects
   for select using (bucket_id = 'media');
 
+drop policy if exists "media: authenticated upload to own folder" on storage.objects;
 create policy "media: authenticated upload to own folder" on storage.objects
   for insert with check (
     bucket_id = 'media'
     and auth.uid()::text = (storage.foldername(name))[1]
   );
 
+drop policy if exists "media: owner can delete" on storage.objects;
 create policy "media: owner can delete" on storage.objects
   for delete using (
     bucket_id = 'media'
