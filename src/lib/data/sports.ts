@@ -1,0 +1,36 @@
+export type Sport = {
+  id: string;
+  label: string;
+  svg: string;
+};
+
+export const SPORTS: Sport[] = [
+  { id: "soccer", label: "Soccer", svg: "<circle cx=\"12\" cy=\"12\" r=\"9\" fill=\"none\"/><path d=\"M12 7.4 L15 9.6 L13.9 13.2 L10.1 13.2 L9 9.6 Z\" fill=\"currentColor\"/><path d=\"M15.5 5.2 L18 6.6 L16.6 8.6 L14.6 7.7 Z\" fill=\"currentColor\"/><path d=\"M6 17.5 L8.6 16.8 L9.4 18.9 L7.2 19.8 Z\" fill=\"currentColor\"/>" },
+  { id: "basketball", label: "Basketball", svg: "<circle cx=\"12\" cy=\"12\" r=\"9\" fill=\"none\"/><path d=\"M3 12 Q12 9.5 21 12\" fill=\"none\"/><path d=\"M12 3 Q9.5 12 12 21\" fill=\"none\"/><path d=\"M5 6 Q12 12 5 18\" fill=\"none\"/><path d=\"M19 6 Q12 12 19 18\" fill=\"none\"/>" },
+  { id: "cricket", label: "Cricket", svg: "<path d=\"M9.5 21 L8 19.5 L14.8 6.4 Q15.3 5.5 16.2 6 Q17.1 6.5 16.6 7.4 L11 20 Z\" fill=\"currentColor\"/><line x1=\"15.6\" y1=\"6.7\" x2=\"17\" y2=\"4\"/><circle cx=\"5.8\" cy=\"18.6\" r=\"2\" fill=\"currentColor\"/>" },
+  { id: "tennis", label: "Tennis", svg: "<circle cx=\"12\" cy=\"12\" r=\"8.6\" fill=\"currentColor\"/><path d=\"M5.5 6.5 Q12 9 8 18.5\" fill=\"none\"/><path d=\"M18.5 6.5 Q12 9 16 18.5\" fill=\"none\"/>" },
+  { id: "volleyball", label: "Volleyball", svg: "<circle cx=\"12\" cy=\"12\" r=\"9\" fill=\"none\"/><path d=\"M12 3 Q18 8 12 12 Q6 16 12 21\" fill=\"none\"/><path d=\"M3.5 9.5 Q10 9.5 12 12 Q14.5 15.5 20.5 15\" fill=\"none\"/>" },
+  { id: "table-tennis", label: "Table Tennis", svg: "<circle cx=\"9\" cy=\"9\" r=\"5.4\" fill=\"currentColor\"/><line x1=\"12.7\" y1=\"12.7\" x2=\"16.5\" y2=\"16.5\"/><circle cx=\"19.5\" cy=\"5.5\" r=\"1.7\" fill=\"currentColor\"/>" },
+  { id: "baseball", label: "Baseball", svg: "<circle cx=\"12\" cy=\"12\" r=\"9\" fill=\"none\"/><path d=\"M7 5 Q11.5 12 7 19\" fill=\"none\"/><path d=\"M17 5 Q12.5 12 17 19\" fill=\"none\"/><line x1=\"6.6\" y1=\"8\" x2=\"8.4\" y2=\"8\"/><line x1=\"6\" y1=\"12\" x2=\"7.9\" y2=\"12\"/><line x1=\"6.6\" y1=\"16\" x2=\"8.4\" y2=\"16\"/>" },
+  { id: "american-football", label: "American Football", svg: "<path d=\"M4 12 Q12 3 20 12 Q12 21 4 12 Z\" fill=\"currentColor\"/><line x1=\"8.5\" y1=\"12\" x2=\"15.5\" y2=\"12\"/><line x1=\"10\" y1=\"10.3\" x2=\"10\" y2=\"13.7\"/><line x1=\"12.5\" y1=\"9.6\" x2=\"12.5\" y2=\"14.4\"/><line x1=\"15\" y1=\"10.3\" x2=\"15\" y2=\"13.7\"/>" },
+  { id: "rugby", label: "Rugby", svg: "<path d=\"M12 3.2 Q20.5 7 20.5 12 Q20.5 17 12 20.8 Q3.5 17 3.5 12 Q3.5 7 12 3.2 Z\" fill=\"currentColor\"/><line x1=\"8.3\" y1=\"8.3\" x2=\"15.7\" y2=\"15.7\"/>" },
+  { id: "golf", label: "Golf", svg: "<line x1=\"8\" y1=\"3\" x2=\"8\" y2=\"21\"/><path d=\"M8 3 L16 6 L8 9 Z\" fill=\"currentColor\"/><line x1=\"4\" y1=\"21\" x2=\"20\" y2=\"21\"/><circle cx=\"17\" cy=\"19.3\" r=\"1.7\" fill=\"currentColor\"/>" },
+  { id: "swimming", label: "Swimming", svg: "<path d=\"M2 9 Q5 6 8 9 T14 9 T20 9\" fill=\"none\"/><path d=\"M2 14.5 Q5 11.5 8 14.5 T14 14.5 T20 14.5\" fill=\"none\"/>" },
+  { id: "running", label: "Running", svg: "<path d=\"M2.2 19 L2.2 15.6 Q2.2 14.4 3.4 14.2 L6.6 13.6 Q7.6 13.4 8.3 12.6 L10.4 10.2 Q11 9.5 11.9 9.9 L12.7 10.3 Q13 10.4 13 10.8 L13 12.6 L15.6 12.6 Q17 12.6 18.1 13.5 L20.6 15.5 Q21.6 16.3 21.6 17.6 L21.6 18 Q21.6 19 20.6 19 Z\" fill=\"currentColor\"/><line x1=\"13.6\" y1=\"10.9\" x2=\"13.6\" y2=\"12.6\"/><line x1=\"15.6\" y1=\"11.6\" x2=\"15.6\" y2=\"12.6\"/>" },
+  { id: "cycling", label: "Cycling", svg: "<circle cx=\"5.5\" cy=\"17\" r=\"3.6\" fill=\"none\"/><circle cx=\"18.5\" cy=\"17\" r=\"3.6\" fill=\"none\"/><path d=\"M5.5 17 L10 8 L18.5 17 M10 8 L13 8 M8.3 12.3 L14.7 12.3\" fill=\"none\"/><circle cx=\"13\" cy=\"8\" r=\"1.1\" fill=\"currentColor\"/>" },
+  { id: "boxing", label: "Boxing", svg: "<path d=\"M7 21 L7 14.5 Q7 10 11 10 Q13.2 10 13.6 11.8 Q15.5 11 16.6 12.6 Q17.7 14.2 16.2 15.6 L16.2 17.5 Q16.2 21 12.5 21 Z\" fill=\"currentColor\"/><circle cx=\"13.6\" cy=\"9.2\" r=\"2.3\" fill=\"currentColor\"/>" },
+  { id: "badminton", label: "Badminton", svg: "<path d=\"M12 3.5 L17 13 L7 13 Z\" fill=\"currentColor\"/><circle cx=\"12\" cy=\"15.3\" r=\"2.3\" fill=\"currentColor\"/><line x1=\"10.5\" y1=\"8\" x2=\"13.7\" y2=\"8\"/><line x1=\"9.3\" y1=\"10.5\" x2=\"15\" y2=\"10.5\"/>" },
+  { id: "ice-hockey", label: "Ice Hockey", svg: "<path d=\"M6 3.5 L9.8 17.5 L15 19.5\" fill=\"none\"/><rect x=\"14.5\" y=\"19\" width=\"6.5\" height=\"2.4\" rx=\"1.1\" fill=\"currentColor\"/>" },
+  { id: "skiing", label: "Skiing", svg: "<path d=\"M5 20.5 L9.5 4.5 Q10.3 3 11.6 3.6\" fill=\"none\"/><path d=\"M13 20.5 L17.5 4.5 Q18.3 3 19.6 3.6\" fill=\"none\"/><circle cx=\"7.3\" cy=\"13.3\" r=\"1.3\" fill=\"currentColor\"/><circle cx=\"15.3\" cy=\"13.3\" r=\"1.3\" fill=\"currentColor\"/>" },
+  { id: "surfing", label: "Surfing", svg: "<ellipse cx=\"12\" cy=\"11\" rx=\"2.7\" ry=\"8.6\" fill=\"currentColor\" transform=\"rotate(20 12 11)\"/><path d=\"M3 19.5 Q7 16.5 11 19.5 T19 19.5\" fill=\"none\"/>" },
+  { id: "martial-arts", label: "Martial Arts", svg: "<path d=\"M7.6 6 L16.4 6 L18 9.2 L16.6 10.2 L16.6 20.3 L7.4 20.3 L7.4 10.2 L6 9.2 Z\" fill=\"none\"/><line x1=\"12\" y1=\"6.4\" x2=\"8.6\" y2=\"14.8\"/><line x1=\"12\" y1=\"6.4\" x2=\"15.4\" y2=\"14.8\"/><rect x=\"7.4\" y=\"14.6\" width=\"9.2\" height=\"2.1\" rx=\"0.3\" fill=\"currentColor\"/><rect x=\"10.7\" y=\"14.1\" width=\"2.6\" height=\"3.1\" rx=\"0.5\" fill=\"currentColor\"/>" },
+  { id: "weightlifting", label: "Weightlifting", svg: "<line x1=\"4\" y1=\"12\" x2=\"20\" y2=\"12\"/><rect x=\"1.6\" y=\"7.5\" width=\"2.6\" height=\"9\" rx=\"1.1\" fill=\"currentColor\"/><rect x=\"4.6\" y=\"9.2\" width=\"2\" height=\"5.6\" rx=\"0.8\" fill=\"currentColor\"/><rect x=\"19.8\" y=\"7.5\" width=\"2.6\" height=\"9\" rx=\"1.1\" fill=\"currentColor\"/><rect x=\"17.4\" y=\"9.2\" width=\"2\" height=\"5.6\" rx=\"0.8\" fill=\"currentColor\"/>" },
+  { id: "gym", label: "Gym", svg: "<rect x=\"9.5\" y=\"11\" width=\"5\" height=\"2\" rx=\"1\" fill=\"currentColor\"/><rect x=\"3.2\" y=\"8.5\" width=\"3.4\" height=\"7\" rx=\"1.7\" fill=\"currentColor\"/><rect x=\"17.4\" y=\"8.5\" width=\"3.4\" height=\"7\" rx=\"1.7\" fill=\"currentColor\"/><line x1=\"9.5\" y1=\"10\" x2=\"9.5\" y2=\"14\"/><line x1=\"14.5\" y1=\"10\" x2=\"14.5\" y2=\"14\"/>" },
+  { id: "yoga", label: "Yoga", svg: "<circle cx=\"12\" cy=\"4.6\" r=\"1.9\" fill=\"currentColor\"/><path d=\"M12 7.2 L12 12.5\" fill=\"none\"/><path d=\"M12 8.5 L6.5 12 M12 8.5 L17.5 12\" fill=\"none\"/><path d=\"M12 12.5 Q7 13 6 18 Q9 16.5 10.3 18.5\" fill=\"none\"/><path d=\"M12 12.5 Q17 13 18 18 Q15 16.5 13.7 18.5\" fill=\"none\"/>" },
+  { id: "climbing", label: "Climbing", svg: "<path d=\"M3 20 L9 8 L12.5 14.5 L15 10 L21 20 Z\" fill=\"none\"/><circle cx=\"9\" cy=\"5.4\" r=\"1.7\" fill=\"currentColor\"/><path d=\"M9 7.1 L7 11.5 L10 13 L9.3 17 L7 20\" fill=\"none\"/><path d=\"M10 13 L13 12\" fill=\"none\"/>" },
+  { id: "padel", label: "Padel", svg: "<path d=\"M9 3.5 Q15.5 3.5 15.5 10.5 Q15.5 15 11 15.8 L8 15.8 Q6.5 15.8 6.3 14.2 L9 3.5 Z\" fill=\"currentColor\"/><line x1=\"8.5\" y1=\"15.8\" x2=\"6\" y2=\"21.5\"/><circle cx=\"18.5\" cy=\"18\" r=\"1.8\" fill=\"currentColor\"/>" },
+];
+
+export function sportById(id: string): Sport | undefined {
+  return SPORTS.find((s) => s.id === id);
+}
