@@ -12,6 +12,7 @@ export function StepTaskForm({ step, alreadyDone }: { step: ProtocolStep; alread
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(alreadyDone);
+  const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -25,13 +26,18 @@ export function StepTaskForm({ step, alreadyDone }: { step: ProtocolStep; alread
 
   function handleSubmit() {
     if (!ready || pending || submitted) return;
+    setError(null);
     startTransition(async () => {
       const formData = new FormData();
       formData.set("stepId", String(step.id));
       formData.set("type", step.type);
       if (step.type === "text") formData.set("responseText", text.trim());
       if (file) formData.set("file", file);
-      await completeProtocolStep(formData);
+      const result = await completeProtocolStep(formData);
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
       setSubmitted(true);
       setTimeout(() => router.push("/protocol"), 900);
     });
@@ -60,6 +66,7 @@ export function StepTaskForm({ step, alreadyDone }: { step: ProtocolStep; alread
         <button className={`submit-btn${ready || submitted ? " ready" : ""}`} onClick={handleSubmit} disabled={submitted || pending}>
           {submitted ? "Completed" : pending ? "Saving…" : "Mark complete"}
         </button>
+        {error && <p className="form-error">{error}</p>}
       </div>
     );
   }
@@ -95,6 +102,7 @@ export function StepTaskForm({ step, alreadyDone }: { step: ProtocolStep; alread
       <button className={`submit-btn${ready || submitted ? " ready" : ""}`} onClick={handleSubmit} disabled={submitted || pending}>
         {submitted ? "Completed" : pending ? "Saving…" : "Mark complete"}
       </button>
+      {error && <p className="form-error">{error}</p>}
     </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { randomUUID } from "node:crypto";
 import { createClient } from "@/lib/supabase/server";
 import { applyCheckIn, type ProfileGameState } from "@/lib/game";
 
@@ -61,7 +62,7 @@ async function uploadMedia(
   file: File
 ): Promise<string> {
   const ext = file.name.split(".").pop() || "bin";
-  const path = `${userId}/${crypto.randomUUID()}.${ext}`;
+  const path = `${userId}/${randomUUID()}.${ext}`;
   const { error } = await supabase.storage.from("media").upload(path, file, {
     contentType: file.type || undefined,
   });
@@ -177,46 +178,53 @@ export async function toggleDailyInteraction(
 
 // ───────────────────────────── Protocol steps ─────────────────────────────
 
-export async function completeProtocolStep(formData: FormData) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
+export async function completeProtocolStep(
+  formData: FormData
+): Promise<{ error: string } | { error: null }> {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return { error: "Not authenticated" };
 
-  const stepId = Number(formData.get("stepId"));
-  const type = String(formData.get("type"));
-  const responseText = formData.get("responseText");
-  const file = formData.get("file");
+    const stepId = Number(formData.get("stepId"));
+    const type = String(formData.get("type"));
+    const responseText = formData.get("responseText");
+    const file = formData.get("file");
 
-  let proofId: string | null = null;
+    let proofId: string | null = null;
 
-  if ((type === "photo" || type === "video") && file instanceof File && file.size > 0) {
-    const path = await uploadMedia(supabase, user.id, file);
-    const { data: proof, error: proofErr } = await supabase
-      .from("proofs")
-      .insert({ user_id: user.id, kind: type as "photo" | "video", storage_path: path })
-      .select()
-      .single();
-    if (proofErr) throw new Error(proofErr.message);
-    proofId = proof.id;
+    if ((type === "photo" || type === "video") && file instanceof File && file.size > 0) {
+      const path = await uploadMedia(supabase, user.id, file);
+      const { data: proof, error: proofErr } = await supabase
+        .from("proofs")
+        .insert({ user_id: user.id, kind: type as "photo" | "video", storage_path: path })
+        .select()
+        .single();
+      if (proofErr) return { error: proofErr.message };
+      proofId = proof.id;
+    }
+
+    const { error } = await supabase.from("protocol_progress").upsert(
+      {
+        user_id: user.id,
+        step_id: stepId,
+        response_text: typeof responseText === "string" && responseText ? responseText : null,
+        proof_id: proofId,
+      },
+      { onConflict: "user_id,step_id" }
+    );
+    if (error) return { error: error.message };
+
+    revalidatePath("/protocol");
+    revalidatePath(`/protocol/${stepId}`);
+    revalidatePath("/home");
+    revalidatePath("/wall");
+    return { error: null };
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Unexpected error" };
   }
-
-  const { error } = await supabase.from("protocol_progress").upsert(
-    {
-      user_id: user.id,
-      step_id: stepId,
-      response_text: typeof responseText === "string" && responseText ? responseText : null,
-      proof_id: proofId,
-    },
-    { onConflict: "user_id,step_id" }
-  );
-  if (error) throw new Error(error.message);
-
-  revalidatePath("/protocol");
-  revalidatePath(`/protocol/${stepId}`);
-  revalidatePath("/home");
-  revalidatePath("/wall");
 }
 
 // ───────────────────────────── Community chat ─────────────────────────────
