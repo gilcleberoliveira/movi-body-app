@@ -18,7 +18,7 @@ export default function LinksPage() {
           <a
             key={item.label}
             href={item.href}
-            className={`${styles.card}${item.featured ? ` ${styles.featured}` : ""}`}
+            className={styles.card}
             target={item.href.startsWith("http") ? "_blank" : undefined}
             rel={item.href.startsWith("http") ? "noopener noreferrer" : undefined}
           >

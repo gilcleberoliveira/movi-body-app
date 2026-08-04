@@ -3,8 +3,6 @@
   --ink: #0d0d0d;
   --ink-dim: #6b6a63;
   --line: #d8d7cd;
-  --card: #ffffff;
-  --card-hover: #ebebe1;
 
   min-height: 100vh;
   background: var(--cream);
@@ -46,48 +44,33 @@
   align-items: center;
   justify-content: space-between;
   padding: 18px 22px;
-  background: var(--card);
-  border: 1px solid var(--line);
+  background: var(--ink);
+  border: 1px solid var(--ink);
   border-radius: 12px;
   text-decoration: none;
-  color: var(--ink);
+  color: var(--cream);
   font-family: "Inter", sans-serif;
   font-weight: 500;
   font-size: 15px;
-  transition: background 0.2s ease, transform 0.15s ease, border-color 0.2s ease;
+  transition: background 0.2s ease, transform 0.15s ease;
 }
 
 .card:hover {
-  background: var(--card-hover);
-  border-color: #c7c6ba;
+  background: #1d1d1a;
   transform: translateY(-1px);
 }
 
 .arrow {
   font-family: "IBM Plex Mono", monospace;
-  color: var(--ink-dim);
+  color: var(--cream);
+  opacity: 0.7;
   font-size: 14px;
-  transition: transform 0.2s ease, color 0.2s ease;
+  transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
 .card:hover .arrow {
   transform: translateX(3px);
-  color: var(--ink);
-}
-
-.featured {
-  background: var(--ink);
-  color: var(--cream);
-  border-color: var(--ink);
-}
-
-.featured .arrow {
-  color: var(--cream);
-  opacity: 0.7;
-}
-
-.featured:hover {
-  background: #1d1d1a;
+  opacity: 1;
 }
 
 .footer {
