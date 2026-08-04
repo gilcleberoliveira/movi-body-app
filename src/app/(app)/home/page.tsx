@@ -103,9 +103,6 @@ export default async function HomePage() {
                 </div>
               );
             })}
-            <Link href="/protocol" className="tile add">
-              +<span>Add proof</span>
-            </Link>
           </div>
         </section>
       </main>
