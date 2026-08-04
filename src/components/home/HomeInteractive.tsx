@@ -111,7 +111,7 @@ export function HomeInteractive({
               const sport = sportById(sportId);
               return (
                 <div key={i} className="cell done" title={sport?.label}>
-                  {sport && <SportIcon sport={sport} strokeWidth={1.6} />}
+                  {sport && <SportIcon sport={sport} />}
                 </div>
               );
             }
@@ -139,7 +139,7 @@ export function HomeInteractive({
             {SPORTS.map((s) => (
               <button key={s.id} className="sport-btn" onClick={() => handlePick(s.id)}>
                 <div className="sport-badge">
-                  <SportIcon sport={s} strokeWidth={1.7} />
+                  <SportIcon sport={s} />
                 </div>
                 <span>{s.label}</span>
               </button>

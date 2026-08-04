@@ -1,14 +1,11 @@
 import type { Sport } from "@/lib/data/sports";
 
-export function SportIcon({ sport, strokeWidth = 1.9 }: { sport: Sport; strokeWidth?: number }) {
+export function SportIcon({ sport }: { sport: Sport }) {
   return (
     <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={strokeWidth}
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      viewBox={sport.viewBox}
+      fill="currentColor"
+      stroke="none"
       // Trusted static content from src/lib/data/sports.ts — not user input.
       dangerouslySetInnerHTML={{ __html: sport.svg }}
     />

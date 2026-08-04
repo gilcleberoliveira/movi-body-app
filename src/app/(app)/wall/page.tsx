@@ -47,7 +47,7 @@ export default async function WallPage() {
               const sport = sportById(entry.sport_id);
               return (
                 <div key={i} className="w-tile proof" title={sport?.label}>
-                  {sport && <SportIcon sport={sport} strokeWidth={1.6} />}
+                  {sport && <SportIcon sport={sport} />}
                   <span>{dayLabel}</span>
                 </div>
               );
