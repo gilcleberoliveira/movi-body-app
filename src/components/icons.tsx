@@ -201,4 +201,30 @@ export function BagIcon({ className }: IconProps) {
   );
 }
 
+export function ClipboardIcon({ className }: IconProps) {
+  return (
+    <svg className={className} {...base}>
+      <rect x="7" y="4" width="10" height="16" rx="2" />
+      <rect x="9" y="2.3" width="6" height="3" rx="1" />
+    </svg>
+  );
+}
+
+export function MailIcon({ className }: IconProps) {
+  return (
+    <svg className={className} {...base}>
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="M3 6.5 12 13 21 6.5" />
+    </svg>
+  );
+}
+
+export function ChatBubbleIcon({ className }: IconProps) {
+  return (
+    <svg className={className} {...base}>
+      <path d="M4 12a8 8 0 1 1 3.2 6.4L4 20l1.3-3.6A7.96 7.96 0 0 1 4 12z" />
+    </svg>
+  );
+}
+
 export const SPORT_ICON_STROKE = 1.9;

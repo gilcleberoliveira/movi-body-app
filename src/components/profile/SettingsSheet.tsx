@@ -1,6 +1,6 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useState } from "react";
 
 const LANGS = [
   "English",
@@ -15,28 +15,40 @@ const LANGS = [
   "اردو (Urdu)",
 ];
 
-function subscribeToThemeClass(callback: () => void) {
-  const observer = new MutationObserver(callback);
-  observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
-  return () => observer.disconnect();
+function currentTheme(): "dark" | "light" {
+  return document.documentElement.classList.contains("dark-bg") ? "dark" : "light";
 }
 
-function getIsDark() {
-  return document.documentElement.classList.contains("dark-bg");
-}
-
-function getIsDarkServerSnapshot() {
-  return false;
+function currentLanguage(): string {
+  try {
+    return localStorage.getItem("movi-lang") ?? "English";
+  } catch {
+    return "English";
+  }
 }
 
 export function SettingsSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const dark = useSyncExternalStore(subscribeToThemeClass, getIsDark, getIsDarkServerSnapshot);
+  const [draftDark, setDraftDark] = useState(false);
+  const [draftLang, setDraftLang] = useState("English");
+  const [prevOpen, setPrevOpen] = useState(open);
 
-  function setTheme(isDark: boolean) {
-    document.documentElement.classList.toggle("dark-bg", isDark);
+  // Re-stage the sheet's inputs from the currently-applied settings each time it opens
+  // (adjusting state during render, per https://react.dev/learn/you-might-not-need-an-effect).
+  if (open !== prevOpen) {
+    setPrevOpen(open);
+    if (open) {
+      setDraftDark(currentTheme() === "dark");
+      setDraftLang(currentLanguage());
+    }
+  }
+
+  function handleConfirm() {
+    document.documentElement.classList.toggle("dark-bg", draftDark);
     try {
-      localStorage.setItem("movi-theme", isDark ? "dark" : "light");
+      localStorage.setItem("movi-theme", draftDark ? "dark" : "light");
+      localStorage.setItem("movi-lang", draftLang);
     } catch {}
+    onClose();
   }
 
   return (
@@ -51,7 +63,7 @@ export function SettingsSheet({ open, onClose }: { open: boolean; onClose: () =>
 
         <div className="settings-row">
           <label>Language</label>
-          <select defaultValue="English">
+          <select value={draftLang} onChange={(e) => setDraftLang(e.target.value)}>
             {LANGS.map((l) => (
               <option key={l}>{l}</option>
             ))}
@@ -61,16 +73,20 @@ export function SettingsSheet({ open, onClose }: { open: boolean; onClose: () =>
         <div className="settings-row">
           <label>Background</label>
           <div className="bg-toggle">
-            <button className={!dark ? "active" : ""} onClick={() => setTheme(false)}>
+            <button className={!draftDark ? "active" : ""} onClick={() => setDraftDark(false)}>
               <span className="bg-swatch" style={{ background: "#f2f2eb" }} />
               White
             </button>
-            <button className={dark ? "active" : ""} onClick={() => setTheme(true)}>
+            <button className={draftDark ? "active" : ""} onClick={() => setDraftDark(true)}>
               <span className="bg-swatch" style={{ background: "#0d0d0d" }} />
               Black
             </button>
           </div>
         </div>
+
+        <button className="pill primary" style={{ width: "100%", justifyContent: "center" }} onClick={handleConfirm}>
+          Confirm
+        </button>
       </div>
     </div>
   );

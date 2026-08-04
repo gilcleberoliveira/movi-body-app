@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import { Brand } from "@/components/Brand";
-import { ArrowRightIcon, BagIcon } from "@/components/icons";
+import { ArrowRightIcon } from "@/components/icons";
 import { HomeInteractive } from "@/components/home/HomeInteractive";
 import { PROTOCOL_STEPS } from "@/lib/data/protocolSteps";
 import { mediaUrl } from "@/lib/media";
@@ -108,17 +108,6 @@ export default async function HomePage() {
             </Link>
           </div>
         </section>
-
-        <a href="https://movibody.com/shop" target="_blank" rel="noopener" className="promo-card">
-          <div className="promo-icon">
-            <BagIcon />
-          </div>
-          <div className="promo-text">
-            <p className="promo-title">Gear built for the run</p>
-            <p className="promo-sub">Meet Movi Body sunglasses — see the collection</p>
-          </div>
-          <ArrowRightIcon className="promo-arrow" />
-        </a>
       </main>
     </div>
   );

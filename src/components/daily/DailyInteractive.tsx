@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { HeartIcon, BookmarkIcon, ShareIcon } from "@/components/icons";
+import { ShareSheet } from "@/components/daily/ShareSheet";
 import { dailyMessageForDay, type DailyMessage } from "@/lib/data/dailyMessages";
 import { toggleDailyInteraction } from "@/app/actions";
 
@@ -45,16 +46,16 @@ export function DailyInteractive({
   const [likedSet, setLikedSet] = useState(new Set(likedDays));
   const [savedSet, setSavedSet] = useState(new Set(savedDays));
   const [sharedSet, setSharedSet] = useState(new Set(sharedDays));
+  const [shareSheetOpen, setShareSheetOpen] = useState(false);
   const [, startTransition] = useTransition();
 
-  function toggle(field: "liked" | "saved" | "shared") {
-    const current = field === "liked" ? liked : field === "saved" ? saved : shared;
+  function toggle(field: "liked" | "saved") {
+    const current = field === "liked" ? liked : saved;
     const next = !current;
     if (field === "liked") setLiked(next);
     if (field === "saved") setSaved(next);
-    if (field === "shared") setShared(next);
 
-    const setFn = field === "liked" ? setLikedSet : field === "saved" ? setSavedSet : setSharedSet;
+    const setFn = field === "liked" ? setLikedSet : setSavedSet;
     setFn((prev) => {
       const copy = new Set(prev);
       if (next) copy.add(day);
@@ -64,6 +65,14 @@ export function DailyInteractive({
 
     startTransition(async () => {
       await toggleDailyInteraction(day, field, next);
+    });
+  }
+
+  function markShared() {
+    setShared(true);
+    setSharedSet((prev) => new Set(prev).add(day));
+    startTransition(async () => {
+      await toggleDailyInteraction(day, "shared", true);
     });
   }
 
@@ -85,12 +94,19 @@ export function DailyInteractive({
             <BookmarkIcon />
             <span>Save</span>
           </button>
-          <button className={`action-btn${shared ? " active" : ""}`} onClick={() => toggle("shared")}>
+          <button className={`action-btn${shared ? " active" : ""}`} onClick={() => setShareSheetOpen(true)}>
             <ShareIcon />
             <span>Share</span>
           </button>
         </div>
       </div>
+
+      <ShareSheet
+        open={shareSheetOpen}
+        onClose={() => setShareSheetOpen(false)}
+        text={todayMessage.text}
+        onShared={markShared}
+      />
 
       <div className="seg">
         {(["history", "liked", "saved", "shared"] as Tab[]).map((t) => (
