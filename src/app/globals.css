@@ -48,6 +48,7 @@ nav a svg,nav button svg{width:18px;height:18px}
 .view-home main{display:flex;flex-direction:column;gap:26px;padding-top:16px}
 .protocol-card{display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid var(--border);border-radius:16px;padding:18px;text-decoration:none;color:var(--foreground);background:var(--background);cursor:pointer;width:100%;text-align:left;font-family:inherit}
 .protocol-card .left p.k{font-family:var(--font-display);font-size:13px;font-weight:700;text-transform:uppercase;margin:0}
+.protocol-card .left p.k .k-star{width:12px;height:12px;vertical-align:-1px;margin-right:5px}
 .protocol-card .left p.v{font-size:11px;color:var(--muted-foreground);margin:4px 0 0}
 .protocol-card .prog{display:flex;align-items:center;gap:10px;flex-shrink:0}
 .ring{width:44px;height:44px;border-radius:999px;background:conic-gradient(var(--foreground) calc(var(--pct)*1%), var(--border) 0);display:flex;align-items:center;justify-content:center}
@@ -119,10 +120,13 @@ button.pill:disabled{opacity:.5;cursor:not-allowed}
 .streak-label{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted-foreground);margin:0}
 .streak-sub{font-family:var(--font-mono);font-size:11px;color:var(--muted-foreground)}
 .grid30{margin-top:12px;display:grid;grid-template-columns:repeat(7,1fr);gap:7px}
-.grid30 .cell{aspect-ratio:1;border-radius:999px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;background:none;padding:0;cursor:default}
+.grid30 .cell{aspect-ratio:1;border-radius:999px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;background:none;padding:0;cursor:default;text-decoration:none;color:var(--muted-foreground)}
 .grid30 .cell.done{background:var(--foreground);border:none;color:var(--background)}
 .grid30 .cell.today{border:1.5px dashed color-mix(in srgb, var(--foreground) 50%, transparent);cursor:pointer;color:var(--muted-foreground)}
+.grid30 .cell.milestone{border:1.5px solid var(--foreground);cursor:pointer;color:var(--foreground)}
+.grid30 .cell.milestone.done{background:var(--foreground);color:var(--background)}
 .grid30 .cell svg{width:56%;height:56%}
+.grid30 .cell.milestone svg{width:42%;height:42%}
 .row-head{display:flex;justify-content:space-between;align-items:center}
 .view-all-btn{display:flex;align-items:center;gap:4px;font-size:11px;font-weight:600;letter-spacing:.03em;color:var(--foreground);text-decoration:none;cursor:pointer;background:none;border:1px solid var(--border);border-radius:999px;padding:6px 12px;font-family:inherit}
 .view-all-btn:hover{background:var(--secondary)}
@@ -158,7 +162,7 @@ button.pill:disabled{opacity:.5;cursor:not-allowed}
 .share-row .label{font-size:13.5px;font-weight:600}
 
 .view-wall .w-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
-.view-wall .w-tile{aspect-ratio:1;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;border:none;font-family:inherit;cursor:default;overflow:hidden}
+.view-wall .w-tile{position:relative;aspect-ratio:1;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;border:none;font-family:inherit;cursor:default;overflow:hidden}
 .view-wall .w-tile.add{border:1.5px dashed var(--border);color:var(--muted-foreground);background:none;cursor:pointer}
 .view-wall .w-tile.proof{background:var(--secondary);color:var(--muted-foreground)}
 .view-wall .w-tile.proof img,.view-wall .w-tile.proof video{width:100%;height:100%;object-fit:cover}
@@ -166,6 +170,8 @@ button.pill:disabled{opacity:.5;cursor:not-allowed}
 .view-wall .w-tile.upcoming{border:1px solid var(--border);background:none;color:var(--muted-foreground);opacity:.55}
 .view-wall .w-tile span{font-size:9px;text-transform:uppercase;padding:0 6px}
 .view-wall .w-tile svg{width:22px;height:22px}
+.view-wall .w-tile-star{position:absolute;top:6px;right:6px;width:14px!important;height:14px!important;color:var(--foreground);z-index:1}
+.view-wall .w-tile.proof .w-tile-star{color:var(--background)}
 
 .view-journal main{padding-bottom:8px}
 .view-journal section{margin-bottom:36px}

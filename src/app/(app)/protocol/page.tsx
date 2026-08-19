@@ -1,8 +1,11 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Brand } from "@/components/Brand";
-import { CheckIcon, LockIcon, ArrowRightIcon } from "@/components/icons";
-import { PROTOCOL_STEPS, seasonMeta } from "@/lib/data/protocolSteps";
+import { SportIcon } from "@/components/SportIcon";
+import { StarIcon } from "@/components/icons";
+import { sportById } from "@/lib/data/sports";
+import { SEASONS, SEASON_LENGTH } from "@/lib/data/protocolSteps";
+import { MILESTONES, globalDay } from "@/lib/data/milestones";
 
 export default async function ProtocolMapPage() {
   const supabase = await createClient();
@@ -11,26 +14,29 @@ export default async function ProtocolMapPage() {
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const { data: progress } = await supabase.from("protocol_progress").select("step_id").eq("user_id", user.id);
-  const completed = new Set((progress ?? []).map((p) => p.step_id));
-  const maxDone = completed.size ? Math.max(...completed) : 0;
+  const { data: profile } = await supabase.from("profiles").select("season_current, day_in_season").eq("id", user.id).single();
+  const seasonCurrent = profile?.season_current ?? 1;
+  const dayInSeason = profile?.day_in_season ?? 0;
+  const currentGlobalDay = globalDay(seasonCurrent, dayInSeason);
 
-  function statusOf(id: number) {
-    if (completed.has(id)) return "done";
-    if (id === maxDone + 1) return "current";
-    return "locked";
-  }
+  const { data: checkinsRaw } = await supabase
+    .from("checkins")
+    .select("sport_id, season, day_in_season")
+    .eq("user_id", user.id);
 
-  const pct = (completed.size / PROTOCOL_STEPS.length) * 100;
-
-  const stepsWithHeadings = PROTOCOL_STEPS.reduce<{ step: (typeof PROTOCOL_STEPS)[number]; showHeading: boolean }[]>(
-    (acc, step) => {
-      const previousSeason = acc.length ? acc[acc.length - 1].step.season : 0;
-      acc.push({ step, showHeading: step.season !== previousSeason });
-      return acc;
-    },
-    []
+  const checkinByGlobalDay = new Map(
+    (checkinsRaw ?? []).map((c) => [globalDay(c.season, c.day_in_season), c.sport_id])
   );
+
+  const { data: milestoneProgressRaw } = await supabase
+    .from("milestone_progress")
+    .select("milestone_id")
+    .eq("user_id", user.id);
+  const completedMilestones = new Set((milestoneProgressRaw ?? []).map((m) => m.milestone_id));
+
+  const daysShownUp = checkinByGlobalDay.size;
+  const pct = (daysShownUp / (SEASON_LENGTH * 3)) * 100;
+  const season = SEASONS[seasonCurrent - 1];
 
   return (
     <div className="view-protocol-map">
@@ -42,54 +48,82 @@ export default async function ProtocolMapPage() {
         <div className="protocol-header">
           <span className="eyebrow">The Protocol</span>
           <h1>90 days to a new identity.</h1>
-          <p>Season 1 — Sair da Inércia. One card per day, no skipping ahead.</p>
+          <p>
+            Season {season.n} — {season.name}. {season.question}
+          </p>
         </div>
 
         <div className="progress-row">
           <div className="progress-track">
             <div className="progress-fill" style={{ width: `${pct}%` }} />
           </div>
-          <span className="progress-count">
-            {completed.size}/{PROTOCOL_STEPS.length}
-          </span>
+          <span className="progress-count">{daysShownUp}/90 days</span>
         </div>
+        <p className="page-sub" style={{ margin: "-14px 0 22px" }}>
+          {completedMilestones.size}/{MILESTONES.length} milestones
+        </p>
 
-        <div>
-          {stepsWithHeadings.map(({ step, showHeading }) => {
-            const status = statusOf(step.id);
-            const seasonInfo = seasonMeta(step.season)!;
+        {SEASONS.map((s) => (
+          <section key={s.n} style={{ marginBottom: 28 }}>
+            <p className="phase-heading" style={{ marginTop: 0 }}>
+              Season {s.n} · {s.name} — {s.range}
+            </p>
+            <div className="grid30">
+              {Array.from({ length: SEASON_LENGTH }, (_, i) => {
+                const dInSeason = i + 1;
+                const gDay = globalDay(s.n, dInSeason);
+                const sportId = checkinByGlobalDay.get(gDay);
+                const milestone = MILESTONES.find((m) => m.day === gDay);
+                const isToday = gDay === currentGlobalDay + 1;
 
-            const badgeContent =
-              status === "done" ? <CheckIcon /> : status === "locked" ? <LockIcon /> : step.id;
+                if (milestone) {
+                  const done = completedMilestones.has(milestone.id);
+                  const reached = gDay <= currentGlobalDay;
+                  const cellClass = `cell milestone${done ? " done" : ""}${isToday ? " today" : ""}`;
+                  const content = sportId ? (
+                    (() => {
+                      const sport = sportById(sportId);
+                      return sport ? <SportIcon sport={sport} /> : <StarIcon />;
+                    })()
+                  ) : (
+                    <StarIcon />
+                  );
+                  if (reached) {
+                    return (
+                      <Link key={i} href={`/protocol/${milestone.id}`} className={cellClass} title={milestone.title}>
+                        {content}
+                      </Link>
+                    );
+                  }
+                  return (
+                    <div key={i} className={cellClass} title={milestone.title} style={{ opacity: 0.4 }}>
+                      <StarIcon />
+                    </div>
+                  );
+                }
 
-            const card = (
-              <div className={`step-card ${status}`}>
-                <div className={`step-badge ${status}`}>{badgeContent}</div>
-                <div className={`step-text${status === "locked" ? " blurred" : ""}`}>
-                  <p className="step-meta">{step.type}</p>
-                  <p className="step-title">{step.title}</p>
-                  <p className="step-desc">{step.lesson}</p>
-                </div>
-                {status !== "locked" && (
-                  <div className="step-arrow">
-                    <ArrowRightIcon />
-                  </div>
-                )}
-              </div>
-            );
+                if (sportId) {
+                  const sport = sportById(sportId);
+                  return (
+                    <div key={i} className="cell done" title={sport?.label}>
+                      {sport && <SportIcon sport={sport} />}
+                    </div>
+                  );
+                }
 
-            return (
-              <div key={step.id}>
-                {showHeading && (
-                  <p className="phase-heading">
-                    Season {seasonInfo.n} · {seasonInfo.name}
-                  </p>
-                )}
-                {status === "locked" ? card : <Link href={`/protocol/${step.id}`}>{card}</Link>}
-              </div>
-            );
-          })}
-        </div>
+                if (isToday) {
+                  return (
+                    <Link key={i} href="/home" className="cell today">
+                      <span style={{ fontSize: 11 }}>+</span>
+                    </Link>
+                  );
+                }
+
+                return <div key={i} className="cell" />;
+              })}
+            </div>
+          </section>
+        ))}
       </main>
     </div>
   );

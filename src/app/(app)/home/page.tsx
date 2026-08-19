@@ -2,9 +2,10 @@ import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import { Brand } from "@/components/Brand";
-import { ArrowRightIcon } from "@/components/icons";
+import { ArrowRightIcon, StarIcon } from "@/components/icons";
 import { HomeInteractive } from "@/components/home/HomeInteractive";
-import { PROTOCOL_STEPS } from "@/lib/data/protocolSteps";
+import { NeedAResetSection } from "@/components/home/NeedAResetSection";
+import { MILESTONES, globalDay } from "@/lib/data/milestones";
 import { mediaUrl } from "@/lib/media";
 import { todayDateString } from "@/lib/time";
 
@@ -29,10 +30,16 @@ export default async function HomePage() {
   const todayStr = todayDateString();
   const hasCheckedInToday = !!last && last.created_at.slice(0, 10) === todayStr;
 
-  const { count: completedSteps } = await supabase
-    .from("protocol_progress")
-    .select("*", { count: "exact", head: true })
+  const { data: milestoneProgressRaw } = await supabase
+    .from("milestone_progress")
+    .select("milestone_id")
     .eq("user_id", user.id);
+  const completedMilestoneIds = new Set((milestoneProgressRaw ?? []).map((m) => m.milestone_id));
+
+  const currentGlobalDay = globalDay(profile?.season_current ?? 1, profile?.day_in_season ?? 0);
+  const pendingMilestone = MILESTONES.find(
+    (m) => m.day <= currentGlobalDay && !completedMilestoneIds.has(m.id)
+  );
 
   const recentCheckinsWithProof = (seasonCheckinsRaw ?? [])
     .filter((c) => c.proof_id)
@@ -45,9 +52,9 @@ export default async function HomePage() {
     : { data: [] as { id: string; storage_path: string; kind: string }[] };
   const proofById = new Map((proofsRaw ?? []).map((p) => [p.id, p]));
 
-  const totalSteps = PROTOCOL_STEPS.length;
-  const done = completedSteps ?? 0;
-  const pct = totalSteps ? (done / totalSteps) * 100 : 0;
+  const totalMilestones = MILESTONES.length;
+  const doneMilestones = completedMilestoneIds.size;
+  const pct = totalMilestones ? (doneMilestones / totalMilestones) * 100 : 0;
 
   return (
     <div className="view-home">
@@ -60,18 +67,31 @@ export default async function HomePage() {
           <div className="left">
             <p className="k">Your protocol</p>
             <p className="v">
-              Sair da Inércia — {done}/{totalSteps} unlocked
+              {doneMilestones}/{totalMilestones} milestones
             </p>
           </div>
           <div className="prog">
             <div className="ring" style={{ ["--pct" as string]: pct.toFixed(1) }}>
               <span>
-                {done}/{totalSteps}
+                {doneMilestones}/{totalMilestones}
               </span>
             </div>
             <ArrowRightIcon className="arrow" />
           </div>
         </Link>
+
+        {pendingMilestone && (
+          <Link href={`/protocol/${pendingMilestone.id}`} className="protocol-card">
+            <div className="left">
+              <p className="k">
+                <StarIcon className="k-star" />
+                Milestone unlocked
+              </p>
+              <p className="v">{pendingMilestone.title}</p>
+            </div>
+            <ArrowRightIcon className="arrow" />
+          </Link>
+        )}
 
         <HomeInteractive
           userId={user.id}
@@ -110,6 +130,8 @@ export default async function HomePage() {
             })}
           </div>
         </section>
+
+        <NeedAResetSection />
       </main>
     </div>
   );

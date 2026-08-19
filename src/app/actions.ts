@@ -4,6 +4,9 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { applyCheckIn, type ProfileGameState, type CheckInEvent } from "@/lib/game";
+import { todayDateString } from "@/lib/time";
+import { XP_MILESTONE_BONUS, XP_PER_LEVEL } from "@/lib/data/protocolSteps";
+import { milestoneById } from "@/lib/data/milestones";
 
 // ───────────────────────────── Auth ─────────────────────────────
 
@@ -79,6 +82,18 @@ export async function checkIn(
       .eq("id", user.id)
       .single();
     if (profileErr || !profile) return { error: "Profile not found" };
+
+    // Guard against double-counting the same day (double-click, refresh, retry).
+    const { data: lastCheckin } = await supabase
+      .from("checkins")
+      .select("created_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (lastCheckin && lastCheckin.created_at.slice(0, 10) === todayDateString()) {
+      return { error: "You've already checked in today." };
+    }
 
     let proofId: string | null = null;
     if (typeof proofPath === "string" && proofPath && (proofKind === "photo" || proofKind === "video")) {
@@ -187,9 +202,7 @@ export async function toggleDailyInteraction(
 
 // ───────────────────────────── Protocol steps ─────────────────────────────
 
-export async function completeProtocolStep(
-  formData: FormData
-): Promise<{ error: string } | { error: null }> {
+export async function completeMilestone(formData: FormData): Promise<{ error: string } | { error: null }> {
   try {
     const supabase = await createClient();
     const {
@@ -197,42 +210,82 @@ export async function completeProtocolStep(
     } = await supabase.auth.getUser();
     if (!user) return { error: "Not authenticated" };
 
-    const stepId = Number(formData.get("stepId"));
-    const type = String(formData.get("type"));
+    const milestoneId = Number(formData.get("milestoneId"));
+    const milestone = milestoneById(milestoneId);
+    if (!milestone) return { error: "Milestone not found" };
+
     const responseText = formData.get("responseText");
     const proofPath = formData.get("proofPath");
 
     let proofId: string | null = null;
-
-    if ((type === "photo" || type === "video") && typeof proofPath === "string" && proofPath) {
+    if (milestone.type !== "text" && typeof proofPath === "string" && proofPath) {
       const { data: proof, error: proofErr } = await supabase
         .from("proofs")
-        .insert({ user_id: user.id, kind: type as "photo" | "video", storage_path: proofPath })
+        .insert({ user_id: user.id, kind: milestone.type, storage_path: proofPath })
         .select()
         .single();
       if (proofErr) return { error: proofErr.message };
       proofId = proof.id;
     }
 
-    const { error } = await supabase.from("protocol_progress").upsert(
+    const hasTextResponse = typeof responseText === "string" && responseText.trim().length > 0;
+    if (milestone.type === "text" && !hasTextResponse) {
+      return { error: "Write your response before completing this milestone." };
+    }
+    if (milestone.type !== "text" && !proofId) {
+      return { error: "Add your proof before completing this milestone." };
+    }
+
+    const { data: existing } = await supabase
+      .from("milestone_progress")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("milestone_id", milestoneId)
+      .maybeSingle();
+
+    const { error } = await supabase.from("milestone_progress").upsert(
       {
         user_id: user.id,
-        step_id: stepId,
-        response_text: typeof responseText === "string" && responseText ? responseText : null,
+        milestone_id: milestoneId,
+        response_text: hasTextResponse ? (responseText as string) : null,
         proof_id: proofId,
       },
-      { onConflict: "user_id,step_id" }
+      { onConflict: "user_id,milestone_id" }
     );
     if (error) return { error: error.message };
 
+    if (!existing) {
+      const { data: profile } = await supabase.from("profiles").select("xp").eq("id", user.id).single();
+      if (profile) {
+        const xp = profile.xp + XP_MILESTONE_BONUS;
+        await supabase
+          .from("profiles")
+          .update({ xp, level: Math.floor(xp / XP_PER_LEVEL) + 1 })
+          .eq("id", user.id);
+      }
+    }
+
     revalidatePath("/protocol");
-    revalidatePath(`/protocol/${stepId}`);
+    revalidatePath(`/protocol/${milestoneId}`);
     revalidatePath("/home");
     revalidatePath("/wall");
     return { error: null };
   } catch (e) {
     return { error: e instanceof Error ? e.message : "Unexpected error" };
   }
+}
+
+// ───────────────────────────── Missions ("Need a reset?") ─────────────────────────────
+
+export async function logMission(missionId: number, status: "completed" | "abandoned") {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  const { error } = await supabase.from("mission_log").insert({ user_id: user.id, mission_id: missionId, status });
+  if (error) throw new Error(error.message);
 }
 
 // ───────────────────────────── Community chat ─────────────────────────────

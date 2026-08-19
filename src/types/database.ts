@@ -126,6 +126,40 @@ export type Database = {
           updated_at?: string;
         }
       >;
+      milestone_progress: Table<
+        {
+          id: string;
+          user_id: string;
+          milestone_id: number;
+          response_text: string | null;
+          proof_id: string | null;
+          completed_at: string;
+        },
+        {
+          id?: string;
+          user_id: string;
+          milestone_id: number;
+          response_text?: string | null;
+          proof_id?: string | null;
+          completed_at?: string;
+        }
+      >;
+      mission_log: Table<
+        {
+          id: string;
+          user_id: string;
+          mission_id: number;
+          status: "completed" | "abandoned";
+          created_at: string;
+        },
+        {
+          id?: string;
+          user_id: string;
+          mission_id: number;
+          status: "completed" | "abandoned";
+          created_at?: string;
+        }
+      >;
       chat_messages: Table<
         {
           id: string;

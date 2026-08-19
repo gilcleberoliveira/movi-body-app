@@ -2,8 +2,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import { Brand } from "@/components/Brand";
-import { PlusIcon } from "@/components/icons";
+import { PlusIcon, StarIcon } from "@/components/icons";
 import { SEASON_LENGTH, seasonMeta } from "@/lib/data/protocolSteps";
+import { MILESTONES, globalDay } from "@/lib/data/milestones";
 import { mediaUrl } from "@/lib/media";
 
 export default async function WallPage() {
@@ -26,7 +27,23 @@ export default async function WallPage() {
 
   const seasonCheckins = seasonCheckinsRaw ?? [];
 
-  const proofIds = seasonCheckins.map((c) => c.proof_id).filter((id): id is string => !!id);
+  const seasonMilestones = MILESTONES.filter((m) => m.seasonNumber === seasonCurrent);
+  const { data: milestoneProgressRaw } = seasonMilestones.length
+    ? await supabase
+        .from("milestone_progress")
+        .select("milestone_id, proof_id")
+        .eq("user_id", user.id)
+        .in(
+          "milestone_id",
+          seasonMilestones.map((m) => m.id)
+        )
+    : { data: [] as { milestone_id: number; proof_id: string | null }[] };
+  const milestoneProgressById = new Map((milestoneProgressRaw ?? []).map((m) => [m.milestone_id, m]));
+
+  const proofIds = [
+    ...seasonCheckins.map((c) => c.proof_id),
+    ...(milestoneProgressRaw ?? []).map((m) => m.proof_id),
+  ].filter((id): id is string => !!id);
   const { data: proofsRaw } = proofIds.length
     ? await supabase.from("proofs").select("id, storage_path, kind").in("id", proofIds)
     : { data: [] as { id: string; storage_path: string; kind: string }[] };
@@ -48,12 +65,19 @@ export default async function WallPage() {
         <div className="w-grid">
           {Array.from({ length: SEASON_LENGTH }, (_, i) => {
             const dayLabel = `Day ${String(i + 1).padStart(2, "0")}`;
+            const milestone = MILESTONES.find((m) => m.day === globalDay(seasonCurrent, i + 1));
+            const milestoneProgress = milestone ? milestoneProgressById.get(milestone.id) : undefined;
             const entry = seasonCheckins[i];
-            if (entry) {
-              const proof = entry.proof_id ? proofById.get(entry.proof_id) : null;
-              const url = proof ? mediaUrl(proof.storage_path) : null;
+
+            const milestoneProof = milestoneProgress?.proof_id ? proofById.get(milestoneProgress.proof_id) : null;
+            const checkinProof = entry?.proof_id ? proofById.get(entry.proof_id) : null;
+            const proof = milestoneProof ?? checkinProof;
+            const url = proof ? mediaUrl(proof.storage_path) : null;
+
+            if (entry || milestoneProgress) {
               return (
-                <div key={i} className="w-tile proof">
+                <div key={i} className="w-tile proof" title={milestone?.title}>
+                  {milestone && <StarIcon className="w-tile-star" />}
                   {url ? (
                     proof?.kind === "video" ? (
                       <video src={url} muted playsInline preload="metadata" />
@@ -76,6 +100,7 @@ export default async function WallPage() {
             }
             return (
               <div key={i} className="w-tile upcoming">
+                {milestone && <StarIcon className="w-tile-star" />}
                 <span>{dayLabel}</span>
               </div>
             );

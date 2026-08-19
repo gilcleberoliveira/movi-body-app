@@ -118,6 +118,24 @@ export function VideoIcon({ className }: IconProps) {
   );
 }
 
+export function MicIcon({ className }: IconProps) {
+  return (
+    <svg className={className} {...base}>
+      <rect x="9" y="2" width="6" height="12" rx="3" />
+      <path d="M5 11a7 7 0 0 0 14 0" />
+      <line x1="12" y1="18" x2="12" y2="22" />
+    </svg>
+  );
+}
+
+export function StarIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" stroke="none">
+      <path d="M12 3l1.8 5.3L19 10l-5.2 1.7L12 17l-1.8-5.3L5 10l5.2-1.7L12 3z" />
+    </svg>
+  );
+}
+
 export function TextIcon({ className }: IconProps) {
   return (
     <svg className={className} {...base}>

@@ -16,6 +16,11 @@ const CHECKIN_MESSAGES = [
 ];
 const WEEK_COMPLETE_MSG = "Seven days of proof. Your identity is listening.";
 const NOT_YET_MSG = "You can check in later today — no rush.";
+const SEASON_CLOSE_MESSAGES: Record<number, string> = {
+  1: "You stopped waiting for a perfect beginning.",
+  2: "Your effort is becoming a pattern.",
+  3: "You are not starting over. You are choosing what comes next.",
+};
 
 export type HomeInteractiveProps = {
   userId: string;
@@ -236,7 +241,7 @@ export function HomeInteractive({
           <div className="celebrate-card">
             <div className="celebrate-badge">🏁</div>
             <p className="celebrate-title">Season {celebration} is done.</p>
-            <p className="celebrate-sub">You&apos;re not the same person who started it.</p>
+            <p className="celebrate-sub">{SEASON_CLOSE_MESSAGES[celebration]}</p>
             <button className="pill primary" onClick={() => setCelebration(null)}>
               Continue
             </button>
