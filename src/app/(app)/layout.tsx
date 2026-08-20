@@ -4,15 +4,15 @@ import { isoHoursAgo } from "@/lib/time";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
-  const { count } = await supabase
+  const { data: recentMessages } = await supabase
     .from("chat_messages")
-    .select("id", { count: "exact", head: true })
+    .select("created_at")
     .gte("created_at", isoHoursAgo(24));
 
   return (
     <div className="frame">
       {children}
-      <BottomNav communityCount={count ?? 0} />
+      <BottomNav chatTimestamps={(recentMessages ?? []).map((m) => m.created_at)} />
     </div>
   );
 }

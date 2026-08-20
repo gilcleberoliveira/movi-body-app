@@ -1,8 +1,10 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { HomeIcon, WallIcon, JournalIcon, DailyIcon, CommunityIcon, ProfileIcon } from "@/components/icons";
+import { getChatLastSeen, onChatRead } from "@/lib/chatRead";
 
 const ITEMS = [
   { href: "/home", label: "Home", Icon: HomeIcon, group: "home" },
@@ -13,15 +15,25 @@ const ITEMS = [
   { href: "/profile", label: "Profile", Icon: ProfileIcon, group: "profile" },
 ] as const;
 
-export function BottomNav({ communityCount = 0 }: { communityCount?: number }) {
+export function BottomNav({ chatTimestamps = [] }: { chatTimestamps?: string[] }) {
   const pathname = usePathname();
   const isHomeGroup = pathname.startsWith("/protocol");
+  const [unreadCount, setUnreadCount] = useState(chatTimestamps.length);
+
+  useEffect(() => {
+    function recompute() {
+      const lastSeen = getChatLastSeen();
+      setUnreadCount(lastSeen ? chatTimestamps.filter((t) => t > lastSeen).length : chatTimestamps.length);
+    }
+    recompute();
+    return onChatRead(recompute);
+  }, [chatTimestamps]);
 
   return (
     <nav>
       {ITEMS.map(({ href, label, Icon, group }) => {
         const active = pathname.startsWith(href) || (isHomeGroup && group === "home");
-        const badge = group === "community" && communityCount > 0 ? communityCount : null;
+        const badge = group === "community" && unreadCount > 0 ? unreadCount : null;
         return (
           <Link key={href} href={href} className={active ? "active" : ""}>
             <span className="nav-icon-wrap">

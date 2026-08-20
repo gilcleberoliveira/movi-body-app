@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { AttachIcon, SendIcon } from "@/components/icons";
 import { sendChatMessage } from "@/app/actions";
 import { uploadMediaFromBrowser } from "@/lib/uploadMedia";
+import { markChatRead } from "@/lib/chatRead";
 
 export type ChatMessage = {
   id: string;
@@ -66,6 +67,8 @@ export function ChatRoom({
 
   useEffect(() => {
     threadRef.current?.scrollTo({ top: threadRef.current.scrollHeight });
+    const latest = messages[messages.length - 1];
+    if (latest) markChatRead(latest.created_at);
   }, [messages]);
 
   async function handleSend() {
