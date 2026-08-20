@@ -80,7 +80,8 @@
 }
 
 .footerText {
-  font-family: "IBM Plex Mono", monospace;
+  font-family: "Unbounded", sans-serif;
+  font-weight: 700;
   font-size: 11px;
   letter-spacing: 0.08em;
   color: var(--ink-dim);
