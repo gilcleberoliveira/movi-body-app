@@ -176,7 +176,7 @@ button.pill:disabled{opacity:.5;cursor:not-allowed}
 .view-journal main{padding-bottom:8px}
 .view-journal section{margin-bottom:36px}
 .view-journal .hint{font-size:13px;color:var(--muted-foreground);margin:4px 0 0}
-.view-journal textarea{width:100%;margin-top:14px;border-radius:16px;border:1px solid var(--border);background:none;padding:14px;font-family:var(--font-sans);font-size:13px;color:var(--foreground);resize:vertical}
+.view-journal textarea{width:100%;margin-top:14px;border-radius:16px;border:1px solid var(--border);background:none;padding:14px;font-family:var(--font-sans);font-size:16px;color:var(--foreground);resize:vertical}
 .view-journal button.save{margin-top:10px;width:100%;border:none;border-radius:999px;background:var(--foreground);color:var(--background);padding:13px 0;font-size:13px;font-weight:600;letter-spacing:.02em;text-transform:uppercase;cursor:pointer;font-family:inherit}
 .view-journal button.save:disabled{opacity:.5;cursor:not-allowed}
 .view-journal .j-entry{margin-top:12px;border:1px solid var(--border);border-radius:16px;padding:14px}
@@ -217,14 +217,14 @@ button.pill:disabled{opacity:.5;cursor:not-allowed}
 .view-profile ul.trans li .n{font-family:var(--font-mono);font-size:11px;color:var(--muted-foreground)}
 .view-profile .add-row{margin-top:10px;display:none;gap:8px}
 .view-profile .add-row.open{display:flex}
-.view-profile .add-row input{flex:1;height:40px;border-radius:999px;border:1px solid var(--border);background:none;padding:0 14px;font-size:13px;font-family:var(--font-sans);color:var(--foreground)}
+.view-profile .add-row input{flex:1;height:40px;border-radius:999px;border:1px solid var(--border);background:none;padding:0 14px;font-size:16px;font-family:var(--font-sans);color:var(--foreground)}
 .view-profile .add-row button{width:40px;height:40px;flex-shrink:0;border-radius:999px;background:var(--foreground);color:var(--background);border:none;font-size:15px;cursor:pointer}
 
 .view-profile button.signout{margin-top:32px;width:100%;border:1px solid var(--foreground);background:none;border-radius:999px;padding:16px 0;font-size:14px;font-weight:600;letter-spacing:.02em;text-transform:uppercase;cursor:pointer;color:var(--foreground);font-family:inherit}
 
 .settings-row{margin-bottom:18px}
 .settings-row label{display:block;font-family:var(--font-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted-foreground);margin-bottom:8px}
-.settings-row select{width:100%;height:44px;border-radius:12px;border:1px solid var(--border);background:none;padding:0 14px;font-size:13px;font-family:var(--font-sans);color:var(--foreground)}
+.settings-row select{width:100%;height:44px;border-radius:12px;border:1px solid var(--border);background:none;padding:0 14px;font-size:16px;font-family:var(--font-sans);color:var(--foreground)}
 .bg-toggle{display:flex;gap:8px}
 .bg-toggle button{flex:1;height:44px;border-radius:12px;border:1px solid var(--border);background:none;font-size:12px;font-family:var(--font-sans);color:var(--foreground);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
 .bg-toggle button.active{border-color:var(--foreground);border-width:1.5px}
@@ -263,7 +263,7 @@ button.pill:disabled{opacity:.5;cursor:not-allowed}
 .task-box .task-label{font-family:var(--font-display);font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted-foreground);display:flex;align-items:center;gap:6px;margin-bottom:8px}
 .task-box .task-label svg{width:13px;height:13px}
 .task-box .task-prompt{font-size:13px;margin:0 0 14px;line-height:1.5}
-textarea.task-input{width:100%;border-radius:12px;border:1px solid var(--border);background:none;padding:12px;font-family:var(--font-sans);font-size:13px;color:var(--foreground);resize:vertical}
+textarea.task-input{width:100%;border-radius:12px;border:1px solid var(--border);background:none;padding:12px;font-family:var(--font-sans);font-size:16px;color:var(--foreground);resize:vertical}
 .char-count{text-align:right;font-family:var(--font-mono);font-size:10px;color:var(--muted-foreground);margin-top:4px}
 .upload-box{border:1.5px dashed var(--border);border-radius:12px;padding:28px 16px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;text-align:center}
 .upload-box svg{width:26px;height:26px;color:var(--muted-foreground)}
@@ -337,7 +337,7 @@ textarea.task-input{width:100%;border-radius:12px;border:1px solid var(--border)
 .login-field-head{display:flex;justify-content:space-between;align-items:baseline}
 .login-field label{display:block;font-size:13px;font-weight:500;margin-bottom:6px}
 .login-field-head a{font-size:12px;color:var(--muted-foreground);text-decoration:none}
-.login-field input{width:100%;height:48px;border-radius:12px;border:1px solid var(--border);background:transparent;padding:0 16px;font-size:15px;font-family:var(--font-sans);color:var(--foreground)}
+.login-field input{width:100%;height:48px;border-radius:12px;border:1px solid var(--border);background:transparent;padding:0 16px;font-size:16px;font-family:var(--font-sans);color:var(--foreground)}
 .login-btn{width:100%;margin-top:6px;padding:16px 32px}
 .view-login .login-foot{margin-top:22px;font-size:13px;color:var(--muted-foreground);text-align:center}
 .view-login .login-foot a{color:var(--foreground);font-weight:500;text-decoration:none}
@@ -371,4 +371,4 @@ textarea.task-input{width:100%;border-radius:12px;border:1px solid var(--border)
 .chat-attach-btn svg,.chat-send-btn svg{width:16px;height:16px}
 .chat-send-btn{background:var(--foreground);color:var(--background);border:none}
 .chat-send-btn:disabled{opacity:.5;cursor:not-allowed}
-.chat-input{flex:1;height:36px;border-radius:999px;border:1px solid var(--border);background:none;padding:0 14px;font-size:13px;font-family:var(--font-sans);color:var(--foreground)}
+.chat-input{flex:1;height:36px;border-radius:999px;border:1px solid var(--border);background:none;padding:0 14px;font-size:16px;font-family:var(--font-sans);color:var(--foreground)}
