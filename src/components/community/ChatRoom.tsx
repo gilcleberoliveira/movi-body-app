@@ -24,7 +24,17 @@ function hoursLeft(createdAt: string) {
   return Math.max(0, Math.round(left));
 }
 
-export function ChatRoom({ userId, initialMessages }: { userId: string; initialMessages: ChatMessage[] }) {
+export function ChatRoom({
+  userId,
+  userName,
+  userInitial,
+  initialMessages,
+}: {
+  userId: string;
+  userName: string;
+  userInitial: string;
+  initialMessages: ChatMessage[];
+}) {
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [text, setText] = useState("");
   const [pendingFile, setPendingFile] = useState<File | null>(null);
@@ -60,19 +70,41 @@ export function ChatRoom({ userId, initialMessages }: { userId: string; initialM
 
   async function handleSend() {
     if (sending) return;
-    if (!pendingFile && !text.trim()) return;
+    const body = text.trim();
+    if (!pendingFile && !body) return;
     setSending(true);
+    const clientId = crypto.randomUUID();
     try {
       const formData = new FormData();
-      if (text.trim()) formData.set("body", text.trim());
+      formData.set("clientId", clientId);
+      if (body) formData.set("body", body);
+      let mediaPath: string | null = null;
       if (pendingFile) {
         const uploaded = await uploadMediaFromBrowser(userId, pendingFile);
+        mediaPath = uploaded.path;
         formData.set("mediaPath", uploaded.path);
       }
-      await sendChatMessage(formData);
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: clientId,
+          user_id: userId,
+          name: userName,
+          initial: userInitial,
+          kind: mediaPath ? "media" : "text",
+          body: body || null,
+          storage_path: mediaPath,
+          created_at: new Date().toISOString(),
+        },
+      ]);
       setText("");
       setPendingFile(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
+
+      await sendChatMessage(formData);
+    } catch {
+      setMessages((prev) => prev.filter((m) => m.id !== clientId));
     } finally {
       setSending(false);
     }

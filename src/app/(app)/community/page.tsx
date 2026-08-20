@@ -10,6 +10,12 @@ export default async function CommunityPage() {
   } = await supabase.auth.getUser();
   if (!user) return null;
 
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("name, avatar_initial")
+    .eq("id", user.id)
+    .single();
+
   const since = isoHoursAgo(24);
   const { data: messages } = await supabase
     .from("chat_messages")
@@ -26,7 +32,12 @@ export default async function CommunityPage() {
         </span>
       </header>
       <div className="chat-sub">Community room · everything here disappears after 24 hours</div>
-      <ChatRoom userId={user.id} initialMessages={messages ?? []} />
+      <ChatRoom
+        userId={user.id}
+        userName={profile?.name ?? "Member"}
+        userInitial={profile?.avatar_initial ?? "M"}
+        initialMessages={messages ?? []}
+      />
     </div>
   );
 }

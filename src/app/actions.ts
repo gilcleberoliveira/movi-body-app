@@ -305,11 +305,13 @@ export async function sendChatMessage(formData: FormData) {
 
   const body = formData.get("body");
   const mediaPath = formData.get("mediaPath");
+  const clientId = formData.get("clientId");
   const kind = typeof mediaPath === "string" && mediaPath ? "media" : "text";
 
   if (kind === "text" && (!body || String(body).trim() === "")) return;
 
   const { error } = await supabase.from("chat_messages").insert({
+    ...(typeof clientId === "string" && clientId ? { id: clientId } : {}),
     user_id: user.id,
     name: profile?.name ?? "Member",
     initial: profile?.avatar_initial ?? "M",
