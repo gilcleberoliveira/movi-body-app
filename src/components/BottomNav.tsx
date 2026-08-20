@@ -13,7 +13,7 @@ const ITEMS = [
   { href: "/profile", label: "Profile", Icon: ProfileIcon, group: "profile" },
 ] as const;
 
-export function BottomNav() {
+export function BottomNav({ communityCount = 0 }: { communityCount?: number }) {
   const pathname = usePathname();
   const isHomeGroup = pathname.startsWith("/protocol");
 
@@ -21,9 +21,13 @@ export function BottomNav() {
     <nav>
       {ITEMS.map(({ href, label, Icon, group }) => {
         const active = pathname.startsWith(href) || (isHomeGroup && group === "home");
+        const badge = group === "community" && communityCount > 0 ? communityCount : null;
         return (
           <Link key={href} href={href} className={active ? "active" : ""}>
-            <Icon />
+            <span className="nav-icon-wrap">
+              <Icon />
+              {badge !== null && <span className="nav-badge">{badge > 99 ? "99+" : badge}</span>}
+            </span>
             <span>{label}</span>
           </Link>
         );

@@ -43,6 +43,8 @@ nav{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:100%;max-w
 nav a,nav button{text-decoration:none;background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--muted-foreground);font-size:9px;text-transform:uppercase;cursor:pointer;font-family:var(--font-sans)}
 nav a.active,nav button.active{color:var(--foreground)}
 nav a svg,nav button svg{width:18px;height:18px}
+nav .nav-icon-wrap{position:relative;display:inline-flex}
+nav .nav-badge{position:absolute;top:-6px;right:-10px;min-width:16px;height:16px;padding:0 4px;border-radius:999px;background:var(--foreground);color:var(--background);font-size:9px;line-height:16px;text-align:center;font-weight:700;font-family:var(--font-sans)}
 
 .view-home header .day{font-family:var(--font-mono);font-size:13px;color:var(--muted-foreground)}
 .view-home main{display:flex;flex-direction:column;gap:26px;padding-top:16px}
@@ -151,7 +153,7 @@ button.pill:disabled{opacity:.5;cursor:not-allowed}
 .sport-btn{display:flex;flex-direction:column;align-items:center;gap:7px;border:none;background:none;cursor:pointer;text-align:center;padding:4px 2px;font-family:inherit}
 .sport-badge{width:44px;height:44px;border-radius:999px;background:var(--secondary);display:flex;align-items:center;justify-content:center;transition:background .12s}
 .sport-btn:hover .sport-badge{background:#d9d6c5}
-.sport-badge svg{width:22px;height:22px}
+.sport-badge svg{width:22px;height:22px;fill:#0d0d0d;color:#0d0d0d}
 .sport-btn span{font-size:8.5px;text-transform:uppercase;color:var(--muted-foreground);line-height:1.15}
 
 .share-list{display:flex;flex-direction:column;gap:2px;margin-top:4px}
